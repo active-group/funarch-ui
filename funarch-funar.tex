@@ -106,7 +106,7 @@
   monad-based approaches mimicking OO practice to modern
   model-view-update frameworks.  Changing from the inherently
   imperative classic Model-View-Controller pattern to functional
-  approaches has significant architectural impact, drastically
+  approaches has significant architectural impact, drasticallyg
   reducing coupling and improving testability and maintainability.  On
   the other hand, achieving good modularity with functional approaches
   is an ongoing challenge.  This paper traces the evolution of
@@ -152,18 +152,253 @@
 %% page.
 \received{1 June 2023}
 
-FIXME revise
+% FIXME revise
 
 %%
 %% This command processes the author and affiliation and title
 %% information and builds the first part of the formatted document.
 \maketitle
 
+\section{UI and Software Architecture}
+
+FIXME: basic terminology and thesis
+
 \section{Model-View-Controller}
+
+% http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
+
+The most prominent early example for the design of UI programs and
+toolkits is Trygve Reenskaug's \textit{Movel-View-Controller} pattern
+(MVC)~\cite{MVC}.  The central innovation of MVC idea was the
+decoupling of UI code (``view'') from the domain logic (``model''),
+with the specific intent of allowing multiple different views on the
+same model.
+
+MVC is---at least nominally---the ancestor of most contemporary UI
+paradigms and frameworks.  The separation of the model from the view
+is universally beneficial from an architectural standpoint.
+Developers can change the UI and replace the UI toolkit without
+changing the model.  Moreover, since the model can function without
+the UI, testing automation is significantly easier compared to a
+tightly coupled view.  (If the only way to manipulate the model is
+through the UI, automated tests need to remote-control the UI, which
+is tedious to implement and brittle.)
+
+MVC programs need to keep the view current when the state of the model
+changes.  To that end, models typically implement a variation of the
+\textit{observer pattern}~\cite{GoF}: The model maintains a list of
+``dependents,'' i.e.\ objects that it notifies on changes by calling
+an \texttt{update:} method.  (The controller is tightly coupled to the
+view, and its role is unimportant for this discussion.)
+
+As the \texttt{update:} model informs the view of state changes, this
+approach is inherently imperative.  MVC has nice modularity
+properties, as each part of the model only needs to be coupled to
+``its'' part of the view.  It also creates several challenges to
+software architects:
+%
+\begin{enumerate}
+\item Keeping the view current with respect for the model involves two
+  tasks: initially \emph{constructing} the view by creating the
+  various UI widgets, and later \emph{mutating} the view upon calls to
+  \texttt{update:}.  Conceptually, the result of mutating the view
+  should be the same as re-constructing the view, but the concrete
+  code for both is quite different, implementing the same logic twice.
+\item To achieve modularity, architects should like to split a large,
+  complex view into loosely coupled subviews.  This raises the
+  question of how big those subviews should be. Making them large and
+  correspondingly having them represent a largher chunk of the model
+  simplifies the change logic, as it requires fewer implementations of
+  \texttt{update:}, However it also increases coupling between model
+  and view.  Moreover, it causes potential performance issues when the
+  typical change is only to a small part of the model and only needs a
+  small part of the view to change: In that case, \texttt{update:}
+  either spends time drilling down to this small part of the view or
+  changing larger parts of the view than necessary.
+\item The view is not just a passive display, but will typically
+  include interactive elements that cause changes in the model.
+  Naively implemented, these changes indirectly trigger calls to
+  \texttt{update:} in the view, which again might spill over into
+  changes, causing a cyclic call chain.
+\end{enumerate}
+%
+Consider the following practical example:
+%
+% weather composite, air pressure, temperature controls
+
+\begin{figure}[tb]
+\begin{verbatim}
+class Weather(field pressure: Pressure,
+              field temperature: Temperature) {
+}
+
+interface Observer {
+  method update(info)
+}
+
+class Model {
+  var observers: List Observer
+
+  method changed(info) {
+    for each sobserver in self.observers
+      observer.update(info)
+
+  method subscribe(observer) {
+    observers += observer
+  }
+}
+
+class Pressure extends Model {
+  var hPa: double
+  method setHPa(newHPa: double) {
+    self.hPA = newHPa
+    self.changed(newHPA)
+  }
+}
+
+class Temperature extends Model {
+  var kelvin: double
+  method setKelvin(newKelvin: double) {
+    self.kelvin = newKelvin
+    self.changed(newKelvin)
+  }
+}
+\end{verbatim}
+  \caption{Model for weather data}
+  \label{fig:weather-model}
+\end{figure}
+
+\begin{figure}[tb]
+\begin{verbatim}
+class TemperatureView
+  (field temperatureModel: Temperature):
+{
+  var textField =
+    new TextField(toText(temperatureModel.kelvin) + "K")
+
+  temperatureModel.subscribe(self)
+
+  method update(newKelvin) {
+    textField.setText(toText(newKelvin) + "K")
+  }
+}
+
+class PressureView
+  (field pressureModel: Pressure)
+{
+  var textField =
+    new TextField(toText(pressureModel.hPa) + "hPa")
+
+  pressureModel.subscribe(self)
+
+  method update(newHPa) {
+    textField.setText(toText(newKelvin) + "hPa")
+  }
+}
+
+class WeatherView(field weatherModel: Weather) {
+  var temperatureView =
+    new TemperatureView(weatherModel.temperature)
+  var pressureView =
+    new PressureView(weatherModel.pressure)
+  ...
+}
+\end{verbatim}
+  \caption{View for weather data}
+  \label{fig:weather-view}
+\end{figure}
+
+Figure~\ref{fig:weather-model} shows object-oriented pseudcode for a
+weather model that contains air pressure and temperature, each with
+its own encapsulated state.  Figure~\ref{fig:weather-view} shows
+skeleton code for a view that displays both in text fields.  The code
+demonstrates nicely the modularity of the approach, as
+\texttt{PressureView} and \texttt{TemperatureView} each subscribe to
+their respective models, with no coordination required from
+\texttt{WeatherView}.
+
+The example also illustrates the first two challenges explained above:
+%
+\begin{enumerate}
+\item The code for constructing the string representing the pressure
+  and temperature is duplicated between the code that constructs the
+  text field and the code that updates it.  It is possible to abstract
+  out some code, but the fundamental separation between construction
+  and update---which have to be consistent---remains.
+\item The code contains two sub-views, updated separately.
+  Alternatively, the subscription and update could happen between
+  \texttt{WeatherView} and \texttt{Weather}, reducing modularity
+  somewhat but also reducing the amount of code required.
+\end{enumerate}
+%
+Note that the views are missing code to unsubscribe them from their
+respective models---this further complicates the interaction between
+model and view.
+
+\begin{figure}[tb]
+\begin{verbatim}
+class TemperatureView2
+  (field temperatureModel: Temperature) {
+  var celsiusView =
+    new TextField(toText(kToC(temperatureModel.kelvin)))
+  var fahrenheitView =
+    new TextField(toText(kToF(temperatureModel.kelvin)))
+
+  temperatureModel.subscribe(new Observer {
+      method update(newKelvin) {
+        celsiusView.setText(toText(kToC(newKelvin)))
+    }
+  })
+  temperatureModel.subscribe(new Observer {
+      method update(newKelvin) {
+        textField.setText(toText(kToC(newKelvin)))
+    }
+  })
+  celsiusView.subscribe(new Observer {
+     method update(...) {
+      temperatureModel.setKelvin(cToK(...))
+     }
+  })
+  fahrenheitView.subscribe(new Observer {
+     method update(...) {
+      temperatureModel.setKelvin(fToK(...))
+     }
+  })
+}
+\end{verbatim}
+  %
+  \caption{Two different sub-views on the same model}
+  \label{fig:temperature-view2}
+\end{figure}
+%
+Figure~\ref{fig:temperature-view2} shows a different view, just on the
+temperature, but with two sub-views showing the temperature with
+different units.  The code also adds the element of interactivity:
+When the user interacts with the view, the two observers attached to
+the views update the model.  This demonstrates the third challenge
+described above: There is now an update loop between the model and
+the two views: Each update to the model updates the view, which
+updates the model, and so on.  The code could break the loop by
+checking whether the new value is different from the old before
+calling \texttt{changed}, but this is brittle---especially as
+floating-point rounding is involved in the conversion between the
+three units.
+
+\section{The Curse of the Event Loop}
+
 
 \section{Functional UIs: The Early Days}
 
 Haggis, whatever Clean had
+
+eXene~\cite{eXene} was an early specifically functional approach to UI
+toolkits.  eXene built on Concurrent ML~\cite{ConcurrentML} (CML), and
+replaced the event-loop/callback approach to reactivity by CML's
+communicating primitives.  Specifically, a UI component would provide
+a CML event that would emit information about user actions.  This
+inverts the control flow relative to the event-loop model, as the
+UI program can query the UI events for occurrences at its own leisure,
+and combine them flexibly through CML's event combinators.
 
 \section{The World Teachpack and React} 
 
@@ -187,4 +422,6 @@ Haggis, whatever Clean had
 \end{document}
 \endinput
 %%
-%% End of file `sample-sigplan.tex'.
+% TODOs:
+% - cite Conal
+
