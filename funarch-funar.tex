@@ -386,6 +386,47 @@ three units.
 
 \section{The Curse of the Event Loop}
 
+MVC UI toolkit also face a recurring implementation challenge: While a
+MVC program constructs the UI in terms of hierarchically organized
+views, it must display the UI as flat panel of pixels.  This means
+that technically users interact with the UI panel as a whole, and the
+UI toolkit must infer the view that is the target of the interactions.
+Consider for example a button, which the user presses by clicking with
+a mouse: The UI toolkit must infer from the position of the mouse
+cursor the particular button view at those coordinates, and cause its
+subscribers to be notified.
+
+UI toolkits have traditionally chosen to implement this process using
+an \textit{event loop}, a piece of code that receives hardware input
+events and calls subscriber callback of the corrsponding
+views.  This happens repeatedly \textit{ad infinitum}, hence the
+``loop''.  Here is pseudocode for a typical event loop:
+%
+\begin{verbatim}
+while (true) {
+  var event = get_input_event()
+  dispatch_event(event)
+}
+\end{verbatim}
+%
+For this to work in practice, the \textit{update} methods of the view
+subscribers must not block, as this would prevent further user
+interaction.  If an \textit{update} method needs to perform I/O or
+other blocking operations, this restriction effectively inverts the
+flow of control: The method must start the operation asynchronously
+and register it with the event loop, to be notified when the operation
+has completed.  This is often awkward---more so, when the event loop
+of a particular UI toolkit only supports a limited set of such
+operations, as is common.
+
+In principle, UI programs could also just start threads that perform
+blocking operations synchronously, but interact with the UI
+asynchronously.  Many UI toolkits insist on their functions being
+called from the thread the UI toolkit runs in, further complicating
+matters.
+
+% Callback hell
+
 
 \section{Functional UIs: The Early Days}
 
