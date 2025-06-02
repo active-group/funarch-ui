@@ -317,6 +317,7 @@ demonstrates nicely the modularity of the approach, as
 their respective models, with no coordination required from
 \texttt{WeatherView}.
 
+\label{sec:challenges}
 The example also illustrates the first two challenges explained above:
 %
 \begin{enumerate}
@@ -441,9 +442,9 @@ FIXME: Intro
 \subsection{eXene}
 
 The eXene~\cite{eXene} toolkit was developed as part of the Concurrent
-ML project~\cite{ConcurrentML} (CML).  CML is a combinator library for
-arbitrarily assembling communication events.  EXene uses Concurrent ML
-to solve the event-loop problem described in
+ML project~\cite{ConcurrentML} (CML).  CML is a combinator library in
+Standard ML for arbitrarily assembling communication events.  EXene
+uses Concurrent ML to solve the event-loop problem described in
 Section~\ref{sec:event-loop}.  In eXene, the global event loop is
 relegated to the background in favor of individual event loops running
 in threads, each associated with a UI widget.  Rather than calling
@@ -456,11 +457,37 @@ actions through CML's event combinators.
 While CML and eXene originated in the context of functional
 programming, and CML's combinators rely on higher-order functions to
 some extent, the overall approach of UI manipulation in eXene remains
-firmly imperative.
+firmly imperative.  Thus, eXene inherits challenge \#1 from Section~\ref{sec:challenges}.
 
 \subsection{Fudgets}
 
+While Standard ML is (also) an imperative language, Haskell is pure.
+Haskell's lazy evaluation makes just adding functions that ``do
+stuff'' impractical.  Consequently, interacting with the outside world
+was generally a challenge for the designers of Haskell during its
+nascency in the 1990s.  This also affects the designers of UI
+libraries who were motivated to specify UIs in terms of pure
+functions.  A notable early attempt to do this was the
+\textit{Fudgets} toolkit~\cite{Fudgets}.  (At the time of writing,
+Fudgets is still being maintained as a Haskell library.)
 
+Fudgets represents a UI component (a \textit{fudget}) as a
+\textit{stream processor} of type \verb|F a b| that transforms a
+stream of input values of type \texttt{a} into output values of type
+\texttt{b}.  Fudgets can be combined into sums and products, building
+UI structure and reactivity in a hierarchical fashion.  Fudgets
+completely abstracts the event-loop paradigm away from the user
+program, which consists exclusively of pure functions.
+
+The view of fudgets as attaching pure functions to laid-out UI
+components implies that the structure of the fudgets is static.  UIs
+frequently need to have dynamic structure, however---for example, when
+displaying a list of UI items that supports adding and removing
+elements.  Fudgets addresses this by combinators that accept special
+command values that describe mutations of the UI structure,
+effectively sneaking in imperative elements in its otherwise pure
+model.  Thus, Fudgets also inherits challenge \#1 from
+Section~\ref{sec:challenges}.
 
 \subsection{Haggis}
 
@@ -470,7 +497,13 @@ firmly imperative.
 
 \section{UI Toolkits Elsewhere}
 
-\section{The Modularity Challenge}
+\section{The Functional Modularity Challenge}
+
+\subsection{State Manipulation}
+
+\subsection{UI-Local State}
+
+\subsection{Global Dispatch}
 
 \subsection{From Reacl to Reacl-c}
 
