@@ -477,6 +477,64 @@ firmly imperative.
 
 \section{Persistent Pains}
 
+User interface construction remains a struggle. In addition to
+challenges described above, UI programming -- and testing -- is
+considered difficult for reasons that are beyond the grasp of UI
+frameworks and libraries.
+
+\subsection{Inherently vague semantics}
+
+Many functional user interface frameworks and libraries claim that
+they allow users to describe their UI as a pure function from state
+(domain model) to a description of a graphical display -- for example
+HTML. According to FP folklore, pure functions are easy to
+test. Consequently, it should be easy to write UI tests: Run the
+function \texttt{f} that is your UI for a sample \texttt{state} of
+your domain logic and compare the resulting graphical display to your
+desired version. Even if we forget about the dynamic nature of UIs for
+a moment, this approach rarely results in good tests. Take this
+temparature display in pseudo-code:
+%
+\begin{verbatim}
+  // a user interface
+  let f x
+    = <div
+        style={if (tooHot x)
+                 "background: red;"
+               else
+                 ""}>
+       {string x}
+      </div>
+
+  // test
+  assertEqual (f 22) <div>22</div>
+  assertEqual (f 183) <div style="background: red;">183</div>
+\end{verbatim}
+%
+This trivial test already misses the mark. Say we are dissatisfied
+with a red background color but we still want to emphasize
+temperatures that are too hot. It is reasonable to assume that a red
+border is sufficient to fulfill that need. Our test, however, is of a
+different opinion. Our test demands backgrounds to be red. In these
+situations we have to adapt both our implementation \textit{and} our
+tests. This is fine if \textit{these situations} happen rarely. In UI
+programming, they happen more often than not.
+
+Tests show their merit under the evolution of implementations. A good
+test checks whether an implementation satisfies a given interface,
+while allowing for many different implementations. The interface of
+most UI components is hard to separate from the implementation,
+however. In the example above we want to ensure ``emphasis'', which as
+an abstract concept is hard to formalize.
+
+- maybe mention layout issues
+- bigger example with ``disabledness''?
+
+- Semantics are vague
+--> Separate formal semantics (and UI components) from vague semantics (and UI components)
+- Requirements are often non-modular
+--> Try to refactor requirements
+
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
