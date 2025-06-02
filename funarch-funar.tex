@@ -385,6 +385,7 @@ floating-point rounding is involved in the conversion between the
 three units.
 
 \section{The Curse of the Event Loop}
+\label{sec:event-loop}
 
 MVC UI toolkit also face a recurring implementation challenge: While a
 MVC program constructs the UI in terms of hierarchically organized
@@ -398,7 +399,7 @@ subscribers to be notified.
 
 UI toolkits have traditionally chosen to implement this process using
 an \textit{event loop}, a piece of code that receives hardware input
-events and calls subscriber callback of the corrsponding
+events and calls subscriber callback of the corresponding
 views.  This happens repeatedly \textit{ad infinitum}, hence the
 ``loop''.  Here is pseudocode for a typical event loop:
 %
@@ -421,25 +422,47 @@ operations, as is common.
 
 In principle, UI programs could also just start threads that perform
 blocking operations synchronously, but interact with the UI
-asynchronously.  Many UI toolkits insist on their functions being
-called from the thread the UI toolkit runs in, further complicating
-matters.
+asynchronously.  However, many UI toolkits insist on their functions
+being called from the thread the UI toolkit runs in, further
+complicating matters.
 
-% Callback hell
-
+Thus, typical MVC UI toolkits would couple the control flow of the
+central event loop to the control flow of the subscriber callbacks,
+which includes the code that manipulates the model.  The restrictions
+resulting from this coupling often force developers to write these
+callbacks and their dependencies in a non-linear arrangements,
+creating a style of programming colloquially known as \textit{callback
+  hell}.
 
 \section{Functional UIs: The Early Days}
 
-Haggis, whatever Clean had
+FIXME: Intro
 
-eXene~\cite{eXene} was an early specifically functional approach to UI
-toolkits.  eXene built on Concurrent ML~\cite{ConcurrentML} (CML), and
-replaced the event-loop/callback approach to reactivity by CML's
-communicating primitives.  Specifically, a UI component would provide
-a CML event that would emit information about user actions.  This
-inverts the control flow relative to the event-loop model, as the
-UI program can query the UI events for occurrences at its own leisure,
-and combine them flexibly through CML's event combinators.
+\subsection{eXene}
+
+The eXene~\cite{eXene} toolkit was developed as part of the Concurrent
+ML project~\cite{ConcurrentML} (CML).  CML is a combinator library for
+arbitrarily assembling communication events.  EXene uses Concurrent ML
+to solve the event-loop problem described in
+Section~\ref{sec:event-loop}.  In eXene, the global event loop is
+relegated to the background in favor of individual event loops running
+in threads, each associated with a UI widget.  Rather than calling
+subscriber methods directly, the event loop sends asynchronous
+messages to the widget event loops.  This decouples the control flow
+of the central event loop from that of its components.  Implementors
+of components are afforded great flexibility in orchestrating their
+actions through CML's event combinators.
+
+While CML and eXene originated in the context of functional
+programming, and CML's combinators rely on higher-order functions to
+some extent, the overall approach of UI manipulation in eXene remains
+firmly imperative.
+
+\subsection{Fudgets}
+
+
+
+\subsection{Haggis}
 
 \section{The World Teachpack and React} 
 
