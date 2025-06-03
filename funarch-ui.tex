@@ -491,6 +491,18 @@ Section~\ref{sec:challenges}.
 
 \subsection{Haggis}
 
+Haggis was a short-lived UI toolkit for GHC~\cite{Haggis}, which took
+somewhat of middle path between eXene and Fudgets: While Fudgets
+provides a purely functional UI for constructing widgets via explicit
+combinators, Haggis provides an imperative UI running in the
+\texttt{IO} monad for this construction.  Haggis deals with the event
+loop similarly to eXene, replacing Concurrent ML with Concurrent
+Haskell.  For the reactive part of a UI widget, Haggis provides a
+handle separate from the view part.  The program can wait for
+interaction on these handles also in the \texttt{IO} monad (in
+separate threads if that is convenient), and allows combining them
+in a way similar to CML events.
+
 \section{The World Teachpack and React} 
 
 \section{The evolution of Elm}
