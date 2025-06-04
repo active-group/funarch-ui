@@ -597,9 +597,63 @@ a video game are simple enough that unified state is appropriate.  It
 does prevent easily scaling the approach to realistic UIs.
 
 % Conal's UI paper
-%
+% http://conal.net/papers/Eros/
 
 \section{The Evolution of Elm and React}
+
+Elm~\cite{Elm} is a UI toolkit and companion Haskell-like language
+that translates to JavaScript and thus allows implementing web
+applications.  Elm is in production use in quite a few open-source and
+commercial projects.  Elm's initial release was based on FRP Signals,
+and was similar to Fruit.  Its innovation was its support for
+asynchronous I/O, which is a problem for Fruit because of its global
+approach to I/O.
+
+Elm evolved to an approach different from that of its inception,
+leaving its FRP legacy behind~\cite{ElmFarewellFRP}.  This approach
+gives rise to an alternative UI pattern called
+\textit{Model-View-Update}.  An Elm program mostly consists of only
+two pure functions operating on values of a type \texttt{Model},
+defined by the UI program:
+%
+\begin{verbatim}
+view : Model -> Html Msg
+update : Msg -> Model -> (Model, Cmd Msg)
+\end{verbatim}
+%
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{model-view-update}
+  \caption{The Model-View-Update pattern}
+  \label{fig:mvu}
+\end{figure}
+%
+Figure~\ref{fig:mvu} illustrates the pattern.
+The \texttt{view} function constructs the UI, represented as a HTML
+element.  Each interactive UI widget carries a message of the
+\texttt{Msg} type (also defined by the UI program) that is generated
+when the user interacts with the widget.  The Elm toolkit than passes
+this message to the \texttt{update} function that generates a new
+model, which again gets fed into \texttt{view} and so on.  (The
+\texttt{Cmd} type allows triggering impure actions outside of user
+interactions.)
+
+
+The View-Model-Update model is extraordinarily simple and easy to
+learn, as it does not require the developer to know any higher-level
+abstractions like signals, stream transformers or monads.  It also
+completely avoids the circular dependency between view and model.
+
+The idea of Model-View-Update is quite similar to that of Racket's
+Universe teachpack: The view is re-constructed after every user
+interaction, and it uses a single, monolithic value for the model
+state.  The possible messages belong to a single central type.
+
+Consequently, Elm also inherits the Universe teachpack's architectural
+trade-offs: It solves challenge \#1, but has no notion of an
+independent, composable ``UI component.''   Thus, achieving modularity
+at the level of sub-models and sub-views is entirely up to the
+developer.
 
 \section{UI Toolkits Elsewhere}
 
