@@ -435,9 +435,13 @@ callbacks and their dependencies in a non-linear arrangements,
 creating a style of programming colloquially known as \textit{callback
   hell}.
 
-\section{Functional UIs: The Early Days}
+\section{Functional UI Toolkits: The Early Days}
 
-FIXME: Intro
+This section briefly describes some early UI tookits for functional
+languages.  We focus on toolkitts that implemented genuinely
+functional ideas.  Many other UI toolkits for functional languages
+basically provided bindings for underlying C/C++ libraries and thus
+inherited its imperative MVC pattern.
 
 \subsection{eXene}
 
@@ -491,9 +495,83 @@ Section~\ref{sec:challenges}.
 
 \subsection{Haggis}
 
-\section{The World Teachpack and React} 
+Haggis was a short-lived UI toolkit for GHC~\cite{Haggis}, which took
+somewhat of middle path between eXene and Fudgets: While Fudgets
+provides a purely functional UI for constructing widgets via explicit
+combinators, Haggis provides an imperative UI running in the
+\texttt{IO} monad for this construction.  Haggis deals with the event
+loop similarly to eXene, replacing Concurrent ML with Concurrent
+Haskell.  For the reactive part of a UI widget, Haggis provides a
+handle separate from the view part.  The program can wait for
+interaction on these handles also in the \texttt{IO} monad (in
+separate threads if that is convenient), and allows combining them in
+a way similar to CML events.  Thus, Haggis also inherits challenge
+\#1 from Section~\ref{sec:challenges}.
 
-\section{The evolution of Elm}
+\section{The Racket Universe Teachpack}
+\label{sec:universe-teachpack}
+
+Teachers of introductory programming courses would often like to
+enable their students to write interactive programs.  The complexity
+of UI toolkits have traditionally made this difficult, at least in the
+era of toolkits described in the previous section.  The Racket system
+comes with a library called the \textit{Universe teachpack} for an
+introductory course~\cite{UniverseTeachpack} that allows writing
+distributed, interactive video games in a purely functional manner.
+
+The Universe teachpack is basically ``half'' a UI toolkit.  It is an
+interesting subject for study, as it does address the pernicious
+challenge \#1 of the UI toolkits described above: The duplication of
+view logic between initial construction and later update.  We focus
+here on the ``world'' part of the universe teachpack, i.e.\ video
+games without distribution.  To implement such a video game, the
+developer only has to implement a small number of pure functions, all
+of which operate on a model called the ``world state,'' represented by
+a single value of type \texttt{WorldSt}:
+%
+\begin{verbatim}
+on-draw : WorldSt → Image
+on-tick :  WorldSt → WorldSt
+on-key :  WorldSt KeyEvt → WorldSt
+on-mouse : WorldSt Nat Nat MouseEvt → WorldSt
+\end{verbatim}
+%
+These functions are all callbacks for the Universe teachpack, the
+programs contains no explicit calls to them.
+
+The \texttt{on-draw} function handles view construction and uses Racket's
+\texttt{image} teachpack to build a single frame of the video game.
+(The \texttt{image} teachpack is a combinator library in the style of
+Henderson's functional geometry~\cite{Henderson1982}.)  There is no
+separate function for view \emph{update}: Whenever the model
+transitions to a new state, the Universe teachpack simply calls
+\texttt{on-draw} again and redraws the \emph{entire} frame.  This is
+fast enough in practice to achieve reasonably fluid animation.
+
+The other functions provide reactivity to different kinds of events:
+All of them take a \texttt{WorldSt} state as input and output a new
+state, which the teachpack feeds into \texttt{on-draw}.
+\texttt{On-tick} is called on every clock tick to provide movement
+even when there is no user interaction.  \texttt{On-key} is called on
+key presses, and \texttt{on-mouse} on mouse events.  Writing these
+functions is well within the purview of introductory-course students.
+
+Consequently, the Universe teachpack uses a ``brute-force'' approach
+to the view-update poblem: Use a single monolithic value for the model
+state, and redraw everything every time the model moves to a new
+state.  This means no separate view-update code---challenge \#1
+solved.
+
+Unfortunately, this approach also abandons the good modularity
+properties of object-oriented MVC toolkits: From the point of view of
+the UI toolkit, the model state is a single value, and there is no
+simple way to split it---and the corresponding view elements---into
+sub-views while retaining a similarly simple API.  This is not a
+problem in this context: The video games realistically implemented in
+a video game are simple enough that unified state is appropriate.  It
+does prevent easily scaling the approach to realistic UIs.
+
+\section{The Evolution of Elm and React}
 
 \section{UI Toolkits Elsewhere}
 
