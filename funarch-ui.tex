@@ -608,13 +608,13 @@ temparature display in pseudo-code:
 %
 \begin{verbatim}
   // a user interface
-  let f x
+  let f temp
     = <div
-        style={if (tooHot x)
+        style={if (tooHot temp)
                  "background: red;"
                else
                  ""}>
-       {string x}
+       {string_of_temp temp}
       </div>
 
   // test
