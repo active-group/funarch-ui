@@ -490,8 +490,33 @@ displaying a list of UI items that supports adding and removing
 elements.  Fudgets addresses this by combinators that accept special
 command values that describe mutations of the UI structure,
 effectively sneaking in imperative elements in its otherwise pure
-model.  Thus, Fudgets also inherits challenge \#1 from
+model.  Thus, Fudgets also partially inherits challenge \#1 from
 Section~\ref{sec:challenges}.
+
+\subsection{Fruit}
+
+Fruit~\cite{Fruit} re-imagines the basic idea of Fudgets on top of the
+idea of Functional-Reactive Programming~\cite{FRP}, which had been
+developed in the meantime.  Fruit retains the purity and
+compositionality of Fudgets,  replacing the stream processors of
+Fudgets with FRP signal transformers.  There are two notable
+differences between Fudget and Fruit, however:
+\begin{itemize}
+\item Fudgets widgets have implicit access to interactive events,
+  while Fruit requires them to be threaded explicitly through the
+  program.  This means that a Fruit program is coupled to all aspects
+  of the ``outside world'' it interacts with, making it difficult to
+  add interactions outside the UI (such as file or network I/O) after
+  the fact.
+\item Another difference concerns dealing with dynamic UI components:
+  Whereas Fudget views by default display the values coming from a
+  stream (and are thus ``outside'' those streams), Fruit has the views
+  themselves be the values of the FRP signals, and dynamic structure
+  can be expressed by just having new values return a different view.
+\end{itemize}
+%
+Thus, Fruit avoids challenge \#1 from Section~\ref{sec:challenges},
+but comes with its own modularity problem.
 
 \subsection{Haggis}
 
@@ -570,6 +595,9 @@ sub-views while retaining a similarly simple API.  This is not a
 problem in this context: The video games realistically implemented in
 a video game are simple enough that unified state is appropriate.  It
 does prevent easily scaling the approach to realistic UIs.
+
+% Conal's UI paper
+%
 
 \section{The Evolution of Elm and React}
 
