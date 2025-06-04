@@ -636,13 +636,13 @@ temparature display in pseudo-code:
 %
 \begin{verbatim}
   // a user interface
-  let f x
+  let f temp
     = <div
-        style={if (tooHot x)
+        style={if (tooHot temp)
                  "background: red;"
                else
                  ""}>
-       {string x}
+       {string_of_temp temp}
       </div>
 
   // test
@@ -664,7 +664,33 @@ test checks whether an implementation satisfies a given interface,
 while allowing for many different implementations. The interface of
 most UI components is hard to separate from the implementation,
 however. In the example above we want to ensure ``emphasis'', which as
-an abstract concept is hard to formalize.
+an abstract concept is hard to formalize. Much of what it takes for an
+user interface widget to be considered emphasized is out of reach for
+its graphical display: For one, user's habits and expectations change
+constantly. A graphical representation that is perfectly emphatic
+today might have been overlooked ten years ago. Additionally, context
+plays an important role. A graphical representation that is perfectly
+emphatic when surrounded by white space appears too timid surrounded
+by loud advertisements.
+
+While the inherent vagueness in UI requirements prevents \textit{some
+  aspects} of our UI code to be checked by automated tests, this
+doesn't mean we have to resort to manual testing \textit{for every
+  aspect of our UI code.} In the temperature display above, the
+function \texttt{tooHot} solely operates in terms of the core business
+logic and is therefore amenable to automated testing. In this small
+example, the border between code that caters to vague requirements
+vs. code that caters to formal requirements happens to align with the
+border between UI code and business logic.  With the help of the
+``View Model'' pattern and UI programming models that allow for
+fine-grained modularity we can push the vagueness border further into
+UI code and therefore make some parts of our UI code amenable to
+automated tests.
+
+with the broader idea of
+the separation of concerns between domain model and presentation.
+
+TODO: describe separation strategy
 
 - maybe mention layout issues
 - bigger example with ``disabledness''?
