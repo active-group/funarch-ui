@@ -645,6 +645,23 @@ plays an important role. A graphical representation that is perfectly
 emphatic when surrounded by white space appears too timid surrounded
 by loud advertisements.
 
+While the inherent vagueness in UI requirements prevents \textit{some
+  aspects} of our UI code to be checked by automated tests, this
+doesn't mean we have to resort to manual testing \textit{for every
+  aspect of our UI code.} In the temperature display above, the
+function \texttt{tooHot} solely operates in terms of the core business
+logic and is therefore amenable to automated testing. In this small
+example, the border between code that caters to vague requirements
+vs. code that caters to formal requirements happens to align with the
+border between UI code and business logic.  With the help of the
+``View Model'' pattern and UI programming models that allow for
+fine-grained modularity we can push the vagueness border further into
+UI code and therefore make some parts of our UI code amenable to
+automated tests.
+
+with the broader idea of
+the separation of concerns between domain model and presentation.
+
 TODO: describe separation strategy
 
 - maybe mention layout issues
