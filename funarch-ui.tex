@@ -558,7 +558,16 @@ test checks whether an implementation satisfies a given interface,
 while allowing for many different implementations. The interface of
 most UI components is hard to separate from the implementation,
 however. In the example above we want to ensure ``emphasis'', which as
-an abstract concept is hard to formalize.
+an abstract concept is hard to formalize. Much of what it takes for an
+user interface widget to be considered emphasized is out of reach for
+its graphical display: For one, user's habits and expectations change
+constantly. A graphical representation that is perfectly emphatic
+today might have been overlooked ten years ago. Additionally, context
+plays an important role. A graphical representation that is perfectly
+emphatic when surrounded by white space appears too timid surrounded
+by loud advertisements.
+
+TODO: describe separation strategy
 
 - maybe mention layout issues
 - bigger example with ``disabledness''?
