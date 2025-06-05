@@ -598,19 +598,20 @@ does prevent easily scaling the approach to realistic UIs.
 
 % Conal's UI paper
 % http://conal.net/papers/Eros/
+% PureScript/Halogen
 
 \section{The Evolution of Elm and React}
 
 Elm~\cite{Elm} is a UI toolkit and companion Haskell-like language
 that translates to JavaScript and thus allows implementing web
 applications.  Elm is in production use in quite a few open-source and
-commercial projects.  Elm's initial release was based on FRP Signals,
+commercial projects.  Elm's initial release in 2012 was based on FRP Signals,
 and was similar to Fruit.  Its innovation was its support for
 asynchronous I/O, which is a problem for Fruit because of its global
 approach to I/O.
 
 Elm evolved to an approach different from that of its inception,
-leaving its FRP legacy behind~\cite{ElmFarewellFRP}.  This approach
+leaving its FRP legacy behind in 2016~\cite{ElmFarewellFRP}.  This approach
 gives rise to an alternative UI pattern called
 \textit{Model-View-Update}.  An Elm program mostly consists of only
 two pure functions operating on values of a type \texttt{Model},
@@ -630,14 +631,13 @@ update : Msg -> Model -> (Model, Cmd Msg)
 %
 Figure~\ref{fig:mvu} illustrates the pattern.
 The \texttt{view} function constructs the UI, represented as a HTML
-element.  Each interactive UI widget carries a message of the
+tree.  Each interactive UI widget carries a message of the
 \texttt{Msg} type (also defined by the UI program) that is generated
 when the user interacts with the widget.  The Elm toolkit than passes
 this message to the \texttt{update} function that generates a new
 model, which again gets fed into \texttt{view} and so on.  (The
 \texttt{Cmd} type allows triggering impure actions outside of user
 interactions.)
-
 
 The View-Model-Update model is extraordinarily simple and easy to
 learn, as it does not require the developer to know any higher-level
@@ -654,6 +654,42 @@ trade-offs: It solves challenge \#1, but has no notion of an
 independent, composable ``UI component.''   Thus, achieving modularity
 at the level of sub-models and sub-views is entirely up to the
 developer.
+
+Shortly after Elm's initial release, Facebook released their web UI
+toolkit \textit{React}, which was also based on a variation of the
+Model-View-Update paradigm.
+
+React's \texttt{render} function corresponds to Elm's \texttt{view}
+function: It transforms the model state into a HTML tree.  Unlike Elm,
+React has a composable notion of a UI component---a sub-view with its
+own associated state.  Consequently, \texttt{render} actually first
+creates a tree of UI component, which then gets rendered into HTML.
+
+Where Elm gives the UI program complete freedom in the choice of
+\texttt{Model} type, React differentiates two kinds of state:
+Immutable \textit{properties} that flow downward in the sub-view tree.
+Each component also has its own associated mutable \textit{state},
+which needs to be organized as a JavaScript hash map.
+Thus, React's model of reactivity is different from Elm's: The UI
+program attaches imperative callbacks to UI components, and these
+callbacks can either mutate the component state or cause the
+properties to be replaced.  Conceptually, React ignores the difference
+between these two methods and re-renders the entire UI on each
+interaction, just like Elm.  Over time, mutating the state became
+recognized as an anti-pattern in the React community, and updating the
+UI happens in a manner quite similar to Elm.
+
+% FIXME: maybe notes on the implementation
+
+Elm and React represented an erstwhile peak in the evolution of
+functional APIs, effectively rendering the functional toolkits that
+came before them obsolete: The simplicity of the Model-View-Update
+paradigm makes it attractive for a wide spectrum of
+developers---specifically, it requires no deeper understanding of
+higher-level concepts such as stream transformers, signals, or arrows.
+Yet Model-View-Update is powerful enough to enable even complex
+applications.  Consequently, we take Model-View-Update as the starting
+point for the further discussion of this paper.
 
 \section{UI Toolkits Elsewhere}
 
@@ -765,4 +801,5 @@ TODO: describe separation strategy
 %%
 % TODOs:
 % - cite Conal
+
 
