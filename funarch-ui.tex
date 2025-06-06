@@ -163,6 +163,8 @@
 
 FIXME: basic terminology and thesis
 
+% coupling, modularity
+
 \section{Model-View-Controller}
 
 % http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
@@ -191,11 +193,12 @@ changes.  To that end, models typically implement a variation of the
 an \texttt{update:} method.  (The controller is tightly coupled to the
 view, and its role is unimportant for this discussion.)
 
-As the \texttt{update:} model informs the view of state changes, this
+As the \texttt{update:} method informs the view of state changes, this
 approach is inherently imperative.  MVC has nice modularity
 properties, as each part of the model only needs to be coupled to
 ``its'' part of the view.  It also creates several challenges to
 software architects:
+\label{sec:challenges}
 %
 \begin{enumerate}
 \item Keeping the view current with respect for the model involves two
@@ -307,7 +310,7 @@ class WeatherView(field weatherModel: Weather) {
   \caption{View for weather data}
   \label{fig:weather-view}
 \end{figure}
-
+%
 Figure~\ref{fig:weather-model} shows object-oriented pseudcode for a
 weather model that contains air pressure and temperature, each with
 its own encapsulated state.  Figure~\ref{fig:weather-view} shows
@@ -317,7 +320,6 @@ demonstrates nicely the modularity of the approach, as
 their respective models, with no coordination required from
 \texttt{WeatherView}.
 
-\label{sec:challenges}
 The example also illustrates the first two challenges explained above:
 %
 \begin{enumerate}
@@ -591,7 +593,9 @@ Unfortunately, this approach also abandons the good modularity
 properties of object-oriented MVC toolkits: From the point of view of
 the UI toolkit, the model state is a single value, and there is no
 simple way to split it---and the corresponding view elements---into
-sub-views while retaining a similarly simple API.  This is not a
+sub-views while retaining a similarly simple API.  Thus, the Universe
+teachpack faces the sub-view challenge \#2 from
+Section~\ref{sec:challenges}.  This is not a
 problem in this context: The video games realistically implemented in
 a video game are simple enough that unified state is appropriate.  It
 does prevent easily scaling the approach to realistic UIs.
@@ -650,8 +654,10 @@ interaction, and it uses a single, monolithic value for the model
 state.  The possible messages belong to a single central type.
 
 Consequently, Elm also inherits the Universe teachpack's architectural
-trade-offs: It solves challenge \#1, but has no notion of an
-independent, composable ``UI component.''   Thus, achieving modularity
+trade-offs: It solves challenge \#1 from Section~\ref{sec:challenges},
+but has no notion of an
+independent, composable ``UI component'' and thus faces challenge \#2.
+Thus, achieving modularity
 at the level of sub-models and sub-views is entirely up to the
 developer.
 
@@ -692,17 +698,96 @@ powerful enough to enable even complex applications.  Consequently, we
 take Model-View-Update as the starting point for the further
 discussion of this paper.
 
+% Redux?
+
 \section{UI Toolkits Elsewhere}
 
-\section{The Functional Modularity Challenge}
+\section{Functional Modularity Challenges}
 
-\subsection{State Manipulation}
+Taking Elm's and React's Model-View-Update pattern as a starting
+point, we summarize the architectural tradeoffs listed in
+Section~\ref{sec:challenges}:
+%
+\begin{enumerate}
+\item Model-View-Update solves challenge \#1: A single function
+  describes view construction, no separate logic for view update is
+  needed.
+\item Implementing sub-views in a modular fashion remains a challenge:
+  A functional Elm/React application essentially manages its model
+  state as a single mutable reference at the top level, with
+  everything below managed functionally.
+\item Movel-View-Update also solves challenge \#3, as the cyclic call
+  chain is broken by the sequences succession of models and updates
+  presented to the UI toolkit.
+\end{enumerate}
+%
+Solving challenge~\#2 in means establishing a notion of ``UI
+component'' without resorting to imperative state updates.  A solution
+approach needs to address facets described in this section: Updating
+the model state in a modular fashion, dealing with UI-local state, and
+breaking up global dispatch.
+
+We will illustrate these facets using a simple example: Imagine an
+application that manages phone-book entries with name and phone
+number.  The application manages the phone book in a functional
+manner, as a functional list of immutable entry records.  Its UI
+contains a sub-view component that allows viewing and editing a single
+name within a text field, along with a ``Submit'' button for actually
+changing the address book.
+
+% FIXME: maybe a figure
+
+\subsection{Global Model State Update}
+
+When the user changes the name, this is a local change from the point
+of view of the UI component, but leads to a global change in the
+application, which must update its phone-book reference.  So strictly
+speaking, updating the state is not the job of the name UI component
+but of all the components above it in the hierarchy that need to
+re-construct the state with the one changed name, and finally change
+to global reference at the top.
 
 \subsection{UI-Local State}
 
+The model-state update happens when the user clicks the ``Submit''
+button.  However, the UI carries state even before that, as the user
+types in the new name, usually one letter at a time.  The UI toolkit
+must manage this ``UI-local'' state.  However, as it is an artifact of
+the UI widget and not an aspect of the model, the UI toolkit should
+enable separting them.
+
+Note that the classification between model state and UI-local state
+depends on context and judgement: The name UI component itself has two
+sub-components, a text field and the submit button.  The text field's
+model will usually be the visible text.  However, embedded within the
+name component, the text field's model state becomes the name
+component's UI-local state.
+
 \subsection{Global Dispatch}
 
-\subsection{From Reacl to Reacl-c}
+In Elm, the UI program communicates requests to change the model state
+(as well as other side effects) via messages of type \texttt{Msg},
+which the toolkit subsequently passes to the \texttt{update} function.
+This \texttt{update} function is global, and thus unmodular.  Making
+the global dispatch modular requires associating it with an individual
+UI component rather than the program as a whole.
+
+However, a UI component is often not able to handle the messages
+generated user interaction with its view.  Consider again the name UI
+component: The name should probably not be empty, and thus the
+``Submit'' should be deactivated as long as the text field is empty.
+Thus, the text-field component must, pass a message upwards to its
+enclosing name component informing it of the state change.
+Correspondingly, the enclosing component must be able to handle the
+message coming up from its sub-component.
+
+Furthermore, the type of the message produced by the sub-component
+must match the type expected by the enclosing component.  This is not
+necessarily the case when the two are developed separately: For this
+case, the UI toolkit must offer a mechanism to transform the message
+along the way from its producer to its handler.
+
+\section{From Model-View-Update to Reacl}
 
 
 \section{Persistent Pains}
