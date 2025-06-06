@@ -815,17 +815,83 @@ pattern.
 %% fine-grained modularity we can push the border separating testable and
 %% untestable code further into the UI part.
 
+\section{From Reacl to reacl-c}
+
+Reacl improves on its predecessors in terms of modularity. Modularity
+is a neccessary prerequisite for reusability, but it is not
+sufficient. Reacl often makes it hard to extract and reify certain
+aspects of user interfaces, limiting reusability. This is primarily
+due to the fact that Reacl requires early binding of state by
+default. This means that when a user creates a new instance \texttt{C}
+of a Reacl component, they have to decide then and there which other
+component's state \texttt{C}'s state relates to and in which way. In
+most cases, and as you can see in the examples above, the ``other
+component'' is \texttt{this}, which is the conventional name for the
+instance of the component that is being constructed at the current
+moment. This pattern goes a long way. However, early binding of state
+is at odds with the creation of custom component combinators. The lack
+of custom combinators means untapped reuse potential.
+
+%% This lack in expressivity lead to the creation of reacl-c. reacl-c provides a set
+%% of UI primitives called items and a set of item combinators. Items
+%% generally have a graphical appearance, may have controlled effects and
+%% may return values to their context via so called
+%% \textit{actions}. Additionally, since lots of UIs have a notion of
+%% state, this notion is built in to reacl-c, even though it could
+%% theoretically be implemented in terms of the other concepts.
+
+reacl-c only targets web UIs at the moment. The reacl-c web UI
+primitives and combinators are found in the \texttt{reacl-c.dom}
+namespace.
+%
+\begin{verbatim}
+  (require reacl-c.dom :as dom)
+\end{verbatim}
+%
+These DOM items and item combinators only have a visual
+appearance. They don't issue any effects or actions. They aren't
+affected by state. An example for a DOM item constructor is
+\texttt{span}, which takes a string and produces an item that, when
+shown on screen, displays the given string inside a
+\texttt{<span></span>} element. We can run reacl-c items with
+\texttt{reacl-c.main/run} which takes an item to run and a DOM node.
+%
+\begin{verbatim}
+  (require reacl-c.main :refer [run])
+
+  (run (.getElementById js/document "main")
+       (dom/span "Hello World"))
+\end{verbatim}
+%
+The \texttt{reacl-c.dom} namespace also provides a set of item
+combinators such as \texttt{div}, which takes an arbitrary number of
+items and wraps their graphical appearances in a
+\texttt{<div></div>}. All DOM items optionally take an attribute map
+as a first argument. Item attributes usually correspond to DOM
+attributes, so attribute maps are a way to style items. Note that
+strings are also valid items that appear as themselves.
+%
+\begin{verbatim}
+  ;; an item displaying "Hello " next to "World" in blue.
+  ;; both words are surrounded by a green border.
+
+  (dom/div
+   {:style {:border "1px solid green"}}
+   "Hello "
+   (dom/span
+    {:style {:color "blue"}}
+    "World"))
+\end{verbatim}
+%
+DOM items can issue actions or state changes via the \texttt{onClick}
+attribute for example.
+
+...
+
+
+
 \subsection{The View Model -- functionally}
 
-TODO: describe separation strategy
-
-- maybe mention layout issues
-- bigger example with ``disabledness''?
-
-- Semantics are vague
---> Separate formal semantics (and UI components) from vague semantics (and UI components)
-- Requirements are often non-modular
---> Try to refactor requirements
 
 %%
 %% The next two lines define the bibliography style to be used, and
