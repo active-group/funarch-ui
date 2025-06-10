@@ -1054,6 +1054,129 @@ custom combinator:
   (map-item (entry)))
 \end{verbatim}
 %
+For a rudimentary phone book application we also want to show a simple
+button with a label ``Add new'' that inserts a new entry into the
+phone book. This button can directly work with the entire phone book
+state:
+%
+\begin{verbatim}
+(def empty-entry
+  {:name ""
+   :tel ""})
+
+(defn phone-book-with-add-button []
+  (dom/div
+   (phone-book-2)
+   (dom/button
+    {:onClick
+     (fn [phone-book _]
+       (c/return
+        :state
+        (conj phone-book
+              empty-entry)))}
+    "Add new")))
+\end{verbatim}
+%
+Of course we also want to be able to delete individual entries. We
+would like to display one delete button per entry. If we add such a
+button to the \texttt{entry} item constructor above, we're lacking the
+means to implement the button's functionality directly. We don't have
+to refactor our entire application, however. We can have the button
+issue an action, signalling our intent to delete a certain entry and
+handle the actual deletion further up in the item tree. We adapt the
+\texttt{entry} item constructor accordingly:
+%
+\begin{verbatim}
+(defn entry-2 []
+  ;; model: {:name "Name", :tel "123456"}
+  (dom/div
+   "Name:"
+   (c/focus :name (input))
+   "Tel:"
+   (c/focus :tel (input))
+   (dom/button
+    {:onClick
+     (fn [_ _]
+       (c/return :action :delete))}
+    "Delete")))
+\end{verbatim}
+%
+Our custom item combinator \texttt{map-item} is no longer fit for
+purpose. We can make it more flexible by giving it an extra (optional)
+argument that describes how actions should be propagated.
+%
+\begin{verbatim}
+(defn map-item-2
+  [child-item & [reduce-action-f]]
+  (let [redac-f
+        (or reduce-action-f
+            (fn [_idx ac] ac))]
+    (c/dynamic
+     (fn [xs]
+       (apply
+        dom/div
+        (map (fn [idx]
+               (c/handle-action
+                (c/focus
+                 (lens/at-index idx)
+                 child-item)
+                (fn [_ ac]
+                  (c/return
+                   :action
+                   (redac-f idx ac)))))
+             (range
+              (count xs))))))))
+\end{verbatim}
+%
+Our new phone book item constructor uses this function to enrich the
+deletion intent with the information about which index to delete:
+%
+\begin{verbatim}
+(defn phone-book-3 []
+  (map-item-2 (entry-2)
+              (fn [idx _action]
+                [:delete idx])))
+\end{verbatim}
+%
+We can handle actions with the \texttt{c/handle-action} item
+combinator. \texttt{c/handle-action} takes an item and a handler
+function. Every action that is emitted from the inner item is run
+through the handler function, which takes the current state and the
+action as arguments. The handler function can return
+\texttt{(c/return ...)} values just like an event handler as seen
+above. A reasonable place to actually handle deletion is the same
+place where we handle additions.
+%
+\begin{verbatim}
+(defn handle-phone-book-actions [phone-book action]
+  (assert (vector? action))
+  (case (first action)
+    :add
+    (conj phone-book
+          empty-entry)
+
+    :delete
+    (remove-entry-at-index
+     phone-book
+     (second action))))
+
+(defn phone-book-with-add-button-2 []
+  (c/handle-action
+   (dom/div
+    (phone-book-3)
+    (dom/button
+     {:onClick
+      (fn [phone-book _]
+        (c/return :action [:add]))}
+     "Add new"))
+   (fn [phone-book action]
+     (c/return
+      :state
+      (handle-phone-book-actions phone-book action)))))
+\end{verbatim}
+%
+
+
 
 
 
