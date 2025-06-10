@@ -1171,11 +1171,129 @@ place where we handle additions.
 %
 
 
-
-
-
-
 \subsection{The View Model -- functionally}
+
+In the phone book application above, when a user clicks the ``Add
+new'' button, we insert a new entry below the others. The user can
+then click on the name input field and enter the new entry's name. To
+make our application more convenient to use, we want to set keyboard
+focus on the name input automatically as soon as the user clicks the
+add button. Implementation-wise we might decide to use the browser's
+built-in keyboard focus handling with the \texttt{autoFocus}
+attribute.
+
+So far the domain model and the state of our items was the same. Now
+we also have to keep track of which entry to \texttt{autoFocus}. We
+now separate our domain model from the model of our UI state. This
+pattern is well-known in the OO community, where it is referred to as
+the ``Model-View-ViewModel'' pattern (MVVM). Here we give a brief
+introduction of how to use view models functionally.
+
+Our view model includes a phone book entry from the core domain model,
+enriched with the information whether this particular entry should be
+autofocused. A phone book consists of a sequence of such entries.
+%
+\begin{verbatim}
+(ns view-model
+   (require [core]
+            ...)
+
+(def-record ^:private entry
+  [entry-entry :- core/entry
+   entry-autofocus?])
+
+(def-record ^:private phone-book
+  [phone-book-entries :- (r/sequence-of entry)])
+\end{verbatim}
+%
+It doesn't make any sense to have more than one \texttt{entry} with
+\texttt{entry-autofocus?} set to \texttt{true}. There are many ways to
+ensure this constraint. Here we decide to provide a set of smart
+constructors and accessors that keep the constraint satisfied. First,
+we need the idea of an empty phone book:
+%
+\begin{verbatim}
+(def empty (phone-book phone-book-entries []))
+\end{verbatim}
+%
+We also need a way to add a new entry to the phone book. This is the
+place where we set the \texttt{autofocus?} flags:
+%
+\begin{verbatim}
+(defn unfocus [entry]
+  (entry-autofocus? entry false))
+
+(defn add-entry [phone-book core-entry]
+  (lens/overhaul phone-book phone-book-entries
+                 (fn [entries]
+                   (conj (mapv unfocus entries)
+                         (entry-vm entry-entry core-entry
+                                   entry-autofocus? true)))))
+\end{verbatim}
+%
+And we need a function to delete entries:
+%
+\begin{verbatim}
+(defn delete-entry-at-index [phone-book idx]
+  (lens/overhaul phone-book
+                 phone-book-entries
+                 remove-entry-at-index
+                 idx))
+\end{verbatim}
+%
+TODO: new names for lenses above (e.g. phone-book-entry-at-index)
+%
+This concludes the (view) modelling part. The corresponding UI code is
+very similar to the code above. First, we have to parameterize the
+input item with an autofocus flag.
+%
+\begin{verbatim}
+(defn input [autofocus?]
+  (c/dynamic
+   (fn [text]
+    (dom/input
+     {:autoFocus autofocus?
+      :value text
+      :onChange
+      (fn [old-text event]
+        (c/return
+         :state
+         (.-value
+          (.-target event))))}))))
+\end{verbatim}
+%
+The new entry item now has to handle focus as well.
+%
+\begin{verbatim}
+(defn entry [autofocus?]
+  (dom/div
+   "Name:"
+   (c/focus core-entry-name (input autofocus?))
+   "Tel:"
+   (c/focus core-entry-tel (input false))))
+\end{verbatim}
+%
+The outer entry item -- the one that adds a delete button -- now has to use the new \texttt{entry*}:
+%
+\begin{verbatim}
+(def entry-2
+  ;; model: entry-vm
+  (c/dynamic
+   (fn [entry-vm]
+     (dom/div
+      (c/focus entry-entry
+               (entry
+                (entry-autofocus? entry-vm)))
+      (dom/button
+       {:onClick
+        (fn [_ _]
+          (c/return :action :delete))}
+       "Delete")))))
+\end{verbatim}
+%
+The rest of the code stays exactly the same.
+
+
 
 
 %%
