@@ -970,7 +970,7 @@ Interactivity emanates from event handlers attached to dom items (or
 DOM item combinators). The following item implements a simple text input:
 %
 \begin{verbatim}
-(defn input []
+(def input
   (c/dynamic
    (fn [text]
     (dom/input
@@ -1003,9 +1003,9 @@ phone book application.
   ;; model: {:name "Name", :tel "123456"}
   (dom/div
    "Name:"
-   (c/focus :name (input))
+   (c/focus :name input)
    "Tel:"
-   (c/focus :tel (input))))
+   (c/focus :tel input)))
 \end{verbatim}
 %
 \texttt{focus} makes for very powerful glue. We can go from this small
