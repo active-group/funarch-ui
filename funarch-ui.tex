@@ -999,7 +999,7 @@ following example shows a small UI that manages a single entry in a
 phone book application.
 %
 \begin{verbatim}
-(defn entry []
+(def entry
   ;; model: {:name "Name", :tel "123456"}
   (dom/div
    "Name:"
@@ -1014,7 +1014,7 @@ entire phone book just by using \texttt{focus} with a lens from
 \texttt{active.clojure.lens}:
 %
 \begin{verbatim}
-(defn phone-book []
+(def phone-book
   ;; model: [{:name "Name", :tel "123456"}
   ;;         {:name "Joe", :tel "98765"}]
   (c/dynamic
@@ -1024,13 +1024,13 @@ entire phone book just by using \texttt{focus} with a lens from
       (map (fn [idx]
              (c/focus
               (lens/at-index idx)
-              (entry)))
+              entry))
            (range
             (count entries)))))))
 \end{verbatim}
 %
 Here we map over the indices of the entries in the phone book and use
-\texttt{(c/focus (lens/at-index idx) ...)} to use the \textt{(entry)}
+\texttt{(c/focus (lens/at-index idx) ...)} to use the \textt{entry}
 item for each phone book entry. This pattern is very common when
 dealing with lists. Since the code above only consists of regular
 function application and abstraction, we can use lexical extraction
@@ -1050,8 +1050,8 @@ custom combinator:
            (range
             (count xs)))))))
 
-(defn phone-book-2 []
-  (map-item (entry)))
+(def phone-book-2
+  (map-item entry))
 \end{verbatim}
 %
 For a rudimentary phone book application we also want to show a simple
@@ -1064,9 +1064,9 @@ state:
   {:name ""
    :tel ""})
 
-(defn phone-book-with-add-button []
+(def phone-book-with-add-button
   (dom/div
-   (phone-book-2)
+   phone-book-2
    (dom/button
     {:onClick
      (fn [phone-book _]
@@ -1083,17 +1083,14 @@ button to the \texttt{entry} item constructor above, we're lacking the
 means to implement the button's functionality directly. We don't have
 to refactor our entire application, however. We can have the button
 issue an action, signalling our intent to delete a certain entry and
-handle the actual deletion further up in the item tree. We adapt the
-\texttt{entry} item constructor accordingly:
+handle the actual deletion further up in the item tree. We build a new
+entry item that reuses the old one and attaches a delete button:
 %
 \begin{verbatim}
-(defn entry-2 []
+(def entry-2
   ;; model: {:name "Name", :tel "123456"}
   (dom/div
-   "Name:"
-   (c/focus :name (input))
-   "Tel:"
-   (c/focus :tel (input))
+   entry
    (dom/button
     {:onClick
      (fn [_ _]
@@ -1102,37 +1099,34 @@ handle the actual deletion further up in the item tree. We adapt the
 \end{verbatim}
 %
 Our custom item combinator \texttt{map-item} is no longer fit for
-purpose. We can make it more flexible by giving it an extra (optional)
+purpose. We can make it more flexible by giving it an extra
 argument that describes how actions should be propagated.
 %
 \begin{verbatim}
 (defn map-item-2
-  [child-item & [reduce-action-f]]
-  (let [redac-f
-        (or reduce-action-f
-            (fn [_idx ac] ac))]
-    (c/dynamic
-     (fn [xs]
-       (apply
-        dom/div
-        (map (fn [idx]
-               (c/handle-action
-                (c/focus
-                 (lens/at-index idx)
-                 child-item)
-                (fn [_ ac]
-                  (c/return
-                   :action
-                   (redac-f idx ac)))))
-             (range
-              (count xs))))))))
+  [child-item reduce-action-f]
+  (c/dynamic
+   (fn [xs]
+     (apply
+      dom/div
+      (map (fn [idx]
+             (c/handle-action
+              (c/focus
+               (lens/at-index idx)
+               child-item)
+              (fn [_ ac]
+                (c/return
+                 :action
+                 (reduce-action-f idx ac)))))
+           (range
+            (count xs)))))))
 \end{verbatim}
 %
-Our new phone book item constructor uses this function to enrich the
+Our new phone book item uses this function to enrich the
 deletion intent with the information about which index to delete:
 %
 \begin{verbatim}
-(defn phone-book-3 []
+(def phone-book-3
   (map-item-2 (entry-2)
               (fn [idx _action]
                 [:delete idx])))
@@ -1160,7 +1154,7 @@ place where we handle additions.
      phone-book
      (second action))))
 
-(defn phone-book-with-add-button-2 []
+(def phone-book-with-add-button-2
   (c/handle-action
    (dom/div
     (phone-book-3)
