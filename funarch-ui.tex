@@ -159,22 +159,86 @@
 %% information and builds the first part of the formatted document.
 \maketitle
 
+Implementing applications with graphical user interfaces (GUI) remains
+a challenge, and the architecture of these applications and the UI
+toolkits they use is still evolving.  This is surprising, as the basic
+tenet of GUI architecture---the Model/View separation---has remained
+unchanged for almost 50 years now.
+
+Starting with the \textit{Movel-View-Controller} pattern
+(MVC)~\cite{MVC} and its implementation in the 1970s, the software
+industry and research community have produced a plethora of \textit{UI
+  toolkits}, libraries that provide the conceptual elements of a
+UI---text, input fields, buttons, lists, menus, grids and more---as
+objects to be created and manipulated by the program, and henceforth
+called \textit{widgets}.  Each toolkit dictates or at least
+constraints the organization of the applications that use them.
+
+This paper examines the evolution of UI toolkits and the resulting
+application architecture since their inception from a functional
+perspective.
+
 \section{UI and Software Architecture}
 
-FIXME: basic terminology and thesis
+The job of a UI toolkit is to enable developers to create and maintain
+UI applications.  These dual requirements---effective creation and
+effective maintenance---tend to be in conflict.  This is because
+creating the initial version of a software system as quickly and
+cheaply as possible often produces code that is expensive to maintain.
+This is especially pernicious in practice, as most the of the cost
+produced by a software system is in maintenance, not initial
+creation~\cite{GreenBook}.
 
-% coupling, modularity
+This phenomenon seems to be especially pronounced in GUI applications:
+The Visual Basic 6 (VB6) environment for building such
+applications~\cite{VB6} was optimized for fast initial creation, and
+as such one of the most successful such environments of all time.
+Microsoft relegated VB6 to ``legacy'' status in 2008: Despite this,
+many VB6 applications are still around at the time of writing, even
+though their further development is painful and costly and their
+maintainers understand the importance of moving away from an
+unsupported platform.
+
+Moving away from VB6 is so difficult because of a VB6 application
+typically combines UI-related code, domain logic, and possible
+interactions with database and storage in the same function, making it
+all but impossible to replace any of these parts of the system
+independently.  This \textit{coupling} between the UI, the domain
+logic, and the storage logic prevents piecewise migration to a
+supported environment, making a ``big-bang migration'' the only
+feasible path away from VB6.  Big-bang migration is usually ecomically
+infeasible, and thus these projects are stuck.
+
+The problem of these VB6 projects and many other projects that run
+into high maintenance costs is \textit{coupling}~\cite{GreenBook},
+dependencies between different conceptual building blocks of the
+software that require changes in place to be accompanied by changes in
+other places.  Consequently, the central concern of software
+architecture is to enable effective long-term maintenance by keeping
+coupling down.  A software project can control coupling through its
+strategy for \textit{modularization}~\cite{Modularity}---splitting the
+project into building blocks and maintaining strong boundaries between
+them by establishing explicit interfaces.
+
+The shared concern of UI applications is to establish modularity
+between the UI code and the domain logic.  Reenskaug's goal with the
+MVC pattern was to enable a particular kind of change---changing or
+replacing the UI without changing the domain logic, even having
+multiple UIs without the rest of the application being affected.  To
+that end, the central innovation of MVC was the decoupling of UI code
+(``view'') from the domain logic (``model'').
+
+For the rest of this paper, we will examine UI toolkits and paradigms
+with respect to these tenets of software architecture: How do they
+impact coupling, modularity, and thus maintainability?  
+
+% state seems intrinsic
+
+% testability
 
 \section{Model-View-Controller}
 
 % http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
-
-The most prominent early example for the design of UI programs and
-toolkits is Trygve Reenskaug's \textit{Movel-View-Controller} pattern
-(MVC)~\cite{MVC}.  The central innovation of MVC idea was the
-decoupling of UI code (``view'') from the domain logic (``model''),
-with the specific intent of allowing multiple different views on the
-same model.
 
 MVC is---at least nominally---the ancestor of most contemporary UI
 paradigms and frameworks.  The separation of the model from the view
