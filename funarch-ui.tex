@@ -869,10 +869,10 @@ they allow users to describe their UI as a pure function from state
 HTML. According to FP folklore, pure functions are easy to
 test. Consequently, it should be easy to write UI tests: Run the
 function \texttt{f} that is your UI for a sample \texttt{state} of
-your domain logic and compare the resulting graphical display to your
-desired version. Even if we forget about the dynamic nature of UIs for
-a moment, this approach rarely results in good tests. Take this
-temparature display in pseudo-code:
+your domain logic and compare the resulting graphical display
+\texttt{(f state)} to your desired version. Even if we forget about
+the dynamic nature of UIs for a moment, this approach rarely results
+in good tests. Take this temparature display in pseudo-code:
 %
 \begin{verbatim}
   // a user interface
@@ -906,39 +906,459 @@ most UI components is hard to separate from the implementation,
 however. In the example above we want to ensure ``emphasis'', which as
 an abstract concept is hard to formalize. Much of what it takes for an
 user interface widget to be considered emphasized is out of reach for
-its graphical display: For one, user's habits and expectations change
-constantly. A graphical representation that is perfectly emphatic
-today might have been overlooked ten years ago. Additionally, context
-plays an important role. A graphical representation that is perfectly
-emphatic when surrounded by white space appears too timid surrounded
-by loud advertisements.
+its own graphical display: For one, user's habits and expectations
+change constantly. A graphical representation that is perfectly
+emphatic today might have been overlooked ten years ago. Additionally,
+context plays an important role. A graphical representation that is
+perfectly emphatic when surrounded by white space appears too timid
+surrounded by loud advertisements.
 
-While the inherent vagueness in UI requirements prevents \textit{some
-  aspects} of our UI code to be checked by automated tests, this
-doesn't mean we have to resort to manual testing \textit{for every
-  aspect of our UI code.} In the temperature display above, the
-function \texttt{tooHot} solely operates in terms of the core business
-logic and is therefore amenable to automated testing. In this small
-example, the border between code that caters to vague requirements
-vs. code that caters to formal requirements happens to align with the
-border between UI code and business logic.  With the help of the
-``View Model'' pattern and UI programming models that allow for
-fine-grained modularity we can push the vagueness border further into
-UI code and therefore make some parts of our UI code amenable to
-automated tests.
+\cite{SPE} suggests a classification of software programs into classes
+\textit{S} -- ``programs whose function is formally defined by and
+derivable from a specification'' --, \textit{P} -- programs that have
+a formal specification, but ``the acceptability of a solution is
+determined by the environment in which it is embedded.''  --, and
+\textit{E} -- ``programs that mechanize a human or societal
+activity''. Classes \textit{P} and \textit{E} are further aggregated
+to form the class \textit{A} -- programs ``that represent a computer
+application in the real world''. The distinction between \textit{S}
+and \textit{A} programs aligns with our distinction between software
+aspects that have a precise formal semantics and vague aspects like
+\textit{emphasis}. \textit{S} programs are amenable to automated tests
+or even formal verification. While it requires effort to write tests
+or proofs, running automated tests or checking proofs is
+cheap. \textit{A} programs on the other hand require manual tests to
+verify their correctness. Running manual tests regularly is expensive
+and may be totally infeasible for some software projects.
 
-with the broader idea of
-the separation of concerns between domain model and presentation.
+While most UI software falls into the \textit{A} class \textit{in its
+  entirety}, large software is made from smaller parts, which in turn
+can be classified as either \textit{S} or \textit{A}. In the
+temperature display example above, we already identified
+\textit{emphasis} as the problematic aspect in terms of precise formal
+semantics -- an \textit{A} aspect. In contrast, the function
+\texttt{tooHot} solely operates in terms of the core domain
+logic. This function is independent of its context or any human habits
+or practices. It belongs to class \textit{S}, and is therefore
+amenable to automated tests and verification.
 
-TODO: describe separation strategy
+In order to bring down overall costs for tests, we have to strive for
+a surgically precise discernment of \textit{S} software parts and
+\textit{A} software parts. In other words: We want to write as little
+UI code as possible. In the remainder of this work we propose a
+discipline that supports this goal: we introduce reacl-c, a UI
+combinator library that is optimized for reusability and we make an
+argument for the \textit{functional view model}, a UI programming
+pattern.
 
-- maybe mention layout issues
-- bigger example with ``disabledness''?
+\section{From Reacl to reacl-c}
 
-- Semantics are vague
---> Separate formal semantics (and UI components) from vague semantics (and UI components)
-- Requirements are often non-modular
---> Try to refactor requirements
+Reacl improves on its predecessors in terms of modularity. Modularity
+is a neccessary prerequisite for reusability, but it is not
+sufficient. Reacl often makes it cumbersome to extract and reify certain
+aspects of user interfaces, limiting reusability. This is primarily
+due to two reasons.
+
+\begin{enumerate}
+  \item Reacl requires early binding of state by default. This means
+    that when a user creates a new instance \texttt{C} of a Reacl
+    component, they have to decide then and there which other
+    component's state \texttt{C}'s state relates to and in which
+    way. In most cases, and as you can see in the examples above, the
+    ``other component'' is \texttt{this}, which is the conventional
+    name for the instance of the component that is being constructed
+    at the current moment. This pattern goes a long way. However,
+    early binding of state is usually at odds with the creation of
+    custom component combinators.
+  \item The guideline for dealing with effects in Reacl is to issue
+    actions describing the intent. These actions are then handled at
+    the top-level. If the action issuer needs a response, it has to
+    pack its reference into the action and the action handler has to
+    \texttt{send-message!} the response to that reference.
+\end{enumerate}
+
+Both of these points were explicit design decisions. These choices
+were made under the assumption that UI-specific code makes up a
+substantial part of UI software and that these UI-specific parts will
+be thoroughly tested. As described in the previous section, we have
+since come to the realization that UI code is inherently difficult to
+test regardless of any technological choices and our focus should
+therefore be in minimizing such parts.
+
+\subsection{User interface combinators}
+
+The ClojureScript library \textit{reacl-c} consists of a set of UI
+primitives -- \textit{items} -- and combinators thereof. The library
+centers around three namespaces:
+%
+\begin{verbatim}
+(ns example
+  (:require [reacl-c.core :as c :include-macros true]
+            [reacl-c.main :as main]
+            [reacl-c-.dom :as dom]))
+\end{verbatim}
+%
+All items have a notion of state (even though some of them ignore it),
+items may have a visual appearance, items may issue actions, and items
+may perform effects. Strings are simple items that appear as
+themselves on screen, ignore their state, don't issue actions, and
+don't perform effects. The \texttt{reacl-c.dom} namespaces provides a
+set of simple item combinators corresponding to the DOM elements. The
+following example displays an external link, styled with a blue
+border.
+%
+\begin{verbatim}
+(dom/a
+ {:href "http://example.org"
+  :style {:border "1px solid blue"}
+ "Link!")
+\end{verbatim}
+%
+All items have state. You can access this state with the
+\texttt{dynamic} item constructor, which takes a function that takes
+the current state as an argument and returns an item. The resulting
+item is the item returned from the function. You can ``set'' state
+with the \texttt{isolate-state} item
+combinator. \texttt{isolate-state} takes an initial value for the
+state and an item. The resulting item is the given item exposed to the
+given state. The following item displays ``Hello World'':
+%
+\begin{verbatim}
+(c/isolate-state
+ "Hello"
+ (c/dynamic (fn [state]
+             (str state " World"))
+\end{verbatim}
+%
+Interactivity emanates from event handlers attached to dom items (or
+DOM item combinators). The following item implements a simple text input:
+%
+\begin{verbatim}
+(def input
+  (c/dynamic
+   (fn [text]
+    (dom/input
+     {:value text
+      :onChange
+      (fn [old-text event]
+        (c/return
+         :state
+         (.-value
+          (.-target event))))}))))
+\end{verbatim}
+%
+In the \texttt{:onClick} handler we signal the intent to update the
+current state by returning a special \texttt{return} value. We can
+also issue actions with \texttt{(c/return :action ...)}.
+
+Usually we use \texttt{isolate-state}, which completely detaches the
+state of items below from the state of items above, very seldomly --
+for many applications just once at the top level. Usually we use the
+item combinator \textt{c/focus} to make a child item responsible for
+\textit{a part} of the current state. \textt{focus} takes a lens --
+either a function of both arity one (\textit{get}) and of arity two
+(\textit{putback}), a Clojure keyword, or a value from the
+\texttt{active.clojure.lens} library -- and a child item. The
+following example shows a small UI that manages a single entry in a
+phone book application.
+%
+\begin{verbatim}
+(def entry
+  ;; model: {:name "Name", :tel "123456"}
+  (dom/div
+   "Name:"
+   (c/focus :name input)
+   "Tel:"
+   (c/focus :tel input)))
+\end{verbatim}
+%
+\texttt{focus} makes for very powerful glue. We can go from this small
+item that manages a single phone book entry to an item that manages an
+entire phone book just by using \texttt{focus} with a lens from
+\texttt{active.clojure.lens}:
+%
+\begin{verbatim}
+(def phone-book
+  ;; model: [{:name "Name", :tel "123456"}
+  ;;         {:name "Joe", :tel "98765"}]
+  (c/dynamic
+   (fn [entries]
+     (apply
+      dom/div
+      (map (fn [idx]
+             (c/focus
+              (lens/at-index idx)
+              entry))
+           (range
+            (count entries)))))))
+\end{verbatim}
+%
+Here we map over the indices of the entries in the phone book and use
+\texttt{(c/focus (lens/at-index idx) ...)} to use the \textt{entry}
+item for each phone book entry. This pattern is very common when
+dealing with lists. Since the code above only consists of regular
+function application and abstraction, we can use lexical extraction
+(wie heisst das richtig?) in order to distill this pattern into a
+custom combinator:
+%
+\begin{verbatim}
+(defn map-item [child-item]
+  (c/dynamic
+   (fn [xs]
+     (apply
+      dom/div
+      (map (fn [idx]
+             (c/focus
+              (lens/at-index idx)
+              child-item))
+           (range
+            (count xs)))))))
+
+(def phone-book-2
+  (map-item entry))
+\end{verbatim}
+%
+For a rudimentary phone book application we also want to show a simple
+button with a label ``Add new'' that inserts a new entry into the
+phone book. This button can directly work with the entire phone book
+state:
+%
+\begin{verbatim}
+(def empty-entry
+  {:name ""
+   :tel ""})
+
+(def phone-book-with-add-button
+  (dom/div
+   phone-book-2
+   (dom/button
+    {:onClick
+     (fn [phone-book _]
+       (c/return
+        :state
+        (conj phone-book
+              empty-entry)))}
+    "Add new")))
+\end{verbatim}
+%
+Of course we also want to be able to delete individual entries. We
+would like to display one delete button per entry. If we add such a
+button to the \texttt{entry} item constructor above, we're lacking the
+means to implement the button's functionality directly. We don't have
+to refactor our entire application, however. We can have the button
+issue an action, signalling our intent to delete a certain entry and
+handle the actual deletion further up in the item tree. We build a new
+entry item that reuses the old one and attaches a delete button:
+%
+\begin{verbatim}
+(def entry-2
+  ;; model: {:name "Name", :tel "123456"}
+  (dom/div
+   entry
+   (dom/button
+    {:onClick
+     (fn [_ _]
+       (c/return :action :delete))}
+    "Delete")))
+\end{verbatim}
+%
+Our custom item combinator \texttt{map-item} is no longer fit for
+purpose. We can make it more flexible by giving it an extra
+argument that describes how actions should be propagated.
+%
+\begin{verbatim}
+(defn map-item-2
+  [child-item reduce-action-f]
+  (c/dynamic
+   (fn [xs]
+     (apply
+      dom/div
+      (map (fn [idx]
+             (c/handle-action
+              (c/focus
+               (lens/at-index idx)
+               child-item)
+              (fn [_ ac]
+                (c/return
+                 :action
+                 (reduce-action-f idx ac)))))
+           (range
+            (count xs)))))))
+\end{verbatim}
+%
+Our new phone book item uses this function to enrich the
+deletion intent with the information about which index to delete:
+%
+\begin{verbatim}
+(def phone-book-3
+  (map-item-2 (entry-2)
+              (fn [idx _action]
+                [:delete idx])))
+\end{verbatim}
+%
+We can handle actions with the \texttt{c/handle-action} item
+combinator. \texttt{c/handle-action} takes an item and a handler
+function. Every action that is emitted from the inner item is run
+through the handler function, which takes the current state and the
+action as arguments. The handler function can return
+\texttt{(c/return ...)} values just like an event handler as seen
+above. A reasonable place to actually handle deletion is the same
+place where we handle additions.
+%
+\begin{verbatim}
+(defn handle-phone-book-actions [phone-book action]
+  (assert (vector? action))
+  (case (first action)
+    :add
+    (conj phone-book
+          empty-entry)
+
+    :delete
+    (remove-entry-at-index
+     phone-book
+     (second action))))
+
+(def phone-book-with-add-button-2
+  (c/handle-action
+   (dom/div
+    (phone-book-3)
+    (dom/button
+     {:onClick
+      (fn [phone-book _]
+        (c/return :action [:add]))}
+     "Add new"))
+   (fn [phone-book action]
+     (c/return
+      :state
+      (handle-phone-book-actions phone-book action)))))
+\end{verbatim}
+%
+
+
+\subsection{The View Model -- functionally}
+
+In the phone book application above, when a user clicks the ``Add
+new'' button, we insert a new entry below the others. The user can
+then click on the name input field and enter the new entry's name. To
+make our application more convenient to use, we want to set keyboard
+focus on the name input automatically as soon as the user clicks the
+add button. Implementation-wise we might decide to use the browser's
+built-in keyboard focus handling with the \texttt{autoFocus}
+attribute.
+
+So far the domain model and the state of our items was the same. Now
+we also have to keep track of which entry to \texttt{autoFocus}. We
+now separate our domain model from the model of our UI state. This
+pattern is well-known in the OO community, where it is referred to as
+the ``Model-View-ViewModel'' pattern (MVVM). Here we give a brief
+introduction of how to use view models functionally.
+
+Our view model includes a phone book entry from the core domain model,
+enriched with the information whether this particular entry should be
+autofocused. A phone book consists of a sequence of such entries.
+%
+\begin{verbatim}
+(ns view-model
+   (require [core]
+            ...)
+
+(def-record ^:private entry
+  [entry-entry :- core/entry
+   entry-autofocus?])
+
+(def-record ^:private phone-book
+  [phone-book-entries :- (r/sequence-of entry)])
+\end{verbatim}
+%
+It doesn't make any sense to have more than one \texttt{entry} with
+\texttt{entry-autofocus?} set to \texttt{true}. There are many ways to
+ensure this constraint. Here we decide to provide a set of smart
+constructors and accessors that keep the constraint satisfied. First,
+we need the idea of an empty phone book:
+%
+\begin{verbatim}
+(def empty (phone-book phone-book-entries []))
+\end{verbatim}
+%
+We also need a way to add a new entry to the phone book. This is the
+place where we set the \texttt{autofocus?} flags:
+%
+\begin{verbatim}
+(defn unfocus [entry]
+  (entry-autofocus? entry false))
+
+(defn add-entry [phone-book core-entry]
+  (lens/overhaul phone-book phone-book-entries
+                 (fn [entries]
+                   (conj (mapv unfocus entries)
+                         (entry-vm entry-entry core-entry
+                                   entry-autofocus? true)))))
+\end{verbatim}
+%
+And we need a function to delete entries:
+%
+\begin{verbatim}
+(defn delete-entry-at-index [phone-book idx]
+  (lens/overhaul phone-book
+                 phone-book-entries
+                 remove-entry-at-index
+                 idx))
+\end{verbatim}
+%
+TODO: new names for lenses above (e.g. phone-book-entry-at-index)
+%
+This concludes the (view) modelling part. The corresponding UI code is
+very similar to the code above. First, we have to parameterize the
+input item with an autofocus flag.
+%
+\begin{verbatim}
+(defn input [autofocus?]
+  (c/dynamic
+   (fn [text]
+    (dom/input
+     {:autoFocus autofocus?
+      :value text
+      :onChange
+      (fn [old-text event]
+        (c/return
+         :state
+         (.-value
+          (.-target event))))}))))
+\end{verbatim}
+%
+The new entry item now has to handle focus as well.
+%
+\begin{verbatim}
+(defn entry [autofocus?]
+  (dom/div
+   "Name:"
+   (c/focus core-entry-name (input autofocus?))
+   "Tel:"
+   (c/focus core-entry-tel (input false))))
+\end{verbatim}
+%
+The outer entry item -- the one that adds a delete button -- now has to use the new \texttt{entry*}:
+%
+\begin{verbatim}
+(def entry-2
+  ;; model: entry-vm
+  (c/dynamic
+   (fn [entry-vm]
+     (dom/div
+      (c/focus entry-entry
+               (entry
+                (entry-autofocus? entry-vm)))
+      (dom/button
+       {:onClick
+        (fn [_ _]
+          (c/return :action :delete))}
+       "Delete")))))
+\end{verbatim}
+%
+The rest of the code stays exactly the same.
+
+
+
 
 %%
 %% The next two lines define the bibliography style to be used, and
