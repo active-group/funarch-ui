@@ -178,6 +178,8 @@ This paper examines the evolution of UI toolkits and the resulting
 application architecture since their inception from a functional
 perspective.
 
+FIXME: overview
+
 \section{UI and Software Architecture}
 
 The job of a UI toolkit is to enable developers to create and maintain
@@ -228,13 +230,20 @@ multiple UIs without the rest of the application being affected.  To
 that end, the central innovation of MVC was the decoupling of UI code
 (``view'') from the domain logic (``model'').
 
+The decoupling between view and model also has other practical
+implications for developers who want to implement automatic tests for
+as much of their code as possible.  With environments that strongly
+couple view and model, such as VB6, applications are difficult to
+test, because the only way of invoking domain functionality is via the
+UI, which is intended for human operators.  Often, the only resort in
+these cases is to simulate an operator programmatically, which is
+expensive and brittle.
+
 For the rest of this paper, we will examine UI toolkits and paradigms
 with respect to these tenets of software architecture: How do they
 impact coupling, modularity, and thus maintainability?  
 
 % state seems intrinsic
-
-% testability
 
 \section{Model-View-Controller}
 
