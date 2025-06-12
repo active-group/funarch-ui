@@ -1063,8 +1063,8 @@ also issue actions with \texttt{(c/return :action ...)}.
 Usually we use \texttt{isolate-state}, which completely detaches the
 state of items below from the state of items above, very seldomly --
 for many applications just once at the top level. Usually we use the
-item combinator \textt{c/focus} to make a child item responsible for
-\textit{a part} of the current state. \textt{focus} takes a lens --
+item combinator \texttt{c/focus} to make a child item responsible for
+\textit{a part} of the current state. \texttt{focus} takes a lens --
 either a function of both arity one (\textit{get}) and of arity two
 (\textit{putback}), a Clojure keyword, or a value from the
 \texttt{active.clojure.lens} library -- and a child item. The
@@ -1103,7 +1103,7 @@ entire phone book just by using \texttt{focus} with a lens from
 \end{verbatim}
 %
 Here we map over the indices of the entries in the phone book and use
-\texttt{(c/focus (lens/at-index idx) ...)} to use the \textt{entry}
+\texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
 item for each phone book entry. This pattern is very common when
 dealing with lists. Since the code above only consists of regular
 function application and abstraction, we can use lexical extraction
