@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+      "shadow-cljs": "^3.1.6",
+      "create-react-class": "^15.7.0",
+      "react": "^16.13.1 || ^17.0.0",
+      "react-dom": "^16.13.1 || ^17.0.0"
+  }
+}

@@ -1214,57 +1214,71 @@ pattern.
 
 Reacl improves on its predecessors in terms of modularity. Modularity
 is a neccessary prerequisite for reusability, but it is not
-sufficient. Reacl often makes it cumbersome to extract and reify certain
-aspects of user interfaces, limiting reusability. This is primarily
-due to two reasons.
+sufficient. Reacl allows for many different styles of component
+composition, which makes it hard to write widely applicable reusable
+abstractions. Over the years there emerged some patterns of writing
+Reacl components that allowed for a more compositional programming
+style. This eventually led to the creation of the \textit{reacl-c}
+library.
 
-\begin{enumerate}
-  \item Reacl requires early binding of state by default. This means
-    that when a user creates a new instance \texttt{C} of a Reacl
-    component, they have to decide then and there which other
-    component's state \texttt{C}'s state relates to and in which
-    way. In most cases, and as you can see in the examples above, the
-    ``other component'' is \texttt{this}, which is the conventional
-    name for the instance of the component that is being constructed
-    at the current moment. This pattern goes a long way. However,
-    early binding of state is usually at odds with the creation of
-    custom component combinators.
-  \item The guideline for dealing with effects in Reacl is to issue
-    actions describing the intent. These actions are then handled at
-    the top-level. If the action issuer needs a response, it has to
-    pack its reference into the action and the action handler has to
-    \texttt{send-message!} the response to that reference.
-\end{enumerate}
+One aspect where reacl-c differs from Reacl is the point at which the
+library user has to make decisions about the relationship between a
+parent component's state and its child components' states. In Reacl,
+you have to decide about this relationship when you create a
+component, i.e. a new instance of a class. In the example above we
+create an instance of the \texttt{text-field} class. We have to decide
+then and there which component this text field's state relates to and
+how:
+%
+\begin{verbatim}
+(text-field
+ (reacl/opt :reaction
+  (reacl/reaction
+   this
+   ...))
+ current-name)
+\end{verbatim}
+%
+If you want to defer this decision -- maybe because you want to use a
+component combinator that has to operate on state as well -- you have
+to write a function that takes the \texttt{reacl/opt} value and
+\texttt{current-name} as arguments and you have to build a combinator
+that works on these component constructor functions (instead of
+working on components). It turns out that uniform component
+constructors are almost always better suited to composition than class
+instances.
 
-Both of these points were explicit design decisions. These choices
-were made under the assumption that UI-specific code makes up a
-substantial part of UI software and that these UI-specific parts will
-be thoroughly tested. As described in the previous section, we have
-since come to the realization that UI code is inherently difficult to
-test regardless of any technological choices and our focus should
-therefore be in minimizing such parts.
+Another pattern that emerged is that the relationship between parent
+and child is often best described by the concept of a lens\cite{lens}:
+A child component is often responsible for part of its parent's
+state. That means that the data flow from parent to child works like
+the \texttt{GET} operation of a suitable lens and the data flow from
+child to parent corresponds to the \texttt{PUTBACK} operation.
 
 \subsection{User interface combinators}
 
 The ClojureScript library \textit{reacl-c} consists of a set of UI
-primitives -- \textit{items} -- and combinators thereof. The library
-centers around three namespaces:
+primitives -- \textit{items} -- and combinators thereof. For our
+example we first import the three relevant namespaces from reacl-c
+along with the active.data namespaces. We build on the same domain
+model for phonebooks as described above.
 %
 \begin{verbatim}
 (ns example
   (:require [reacl-c.core :as c :include-macros true]
             [reacl-c.main :as main]
-            [reacl-c-.dom :as dom]))
+            [reacl-c-.dom :as dom]
+            [active.data.record :as r :refer-macros [def-record]))
 \end{verbatim}
 %
-All items have a notion of state (even though some of them ignore it),
-items may have a visual appearance, items may issue actions, and items
-may perform effects. Strings are simple items that appear as
-themselves on screen, ignore their state, don't issue actions, and
-don't perform effects. The \texttt{reacl-c.dom} namespaces provides a
-set of simple item combinators corresponding to the DOM elements. The
-following example displays an external link, styled with a blue
-border.
+All reacl-c items have a notion of state (even though some of them
+ignore it), items may have a visual appearance, items may issue
+actions, and items may perform effects. Strings are simple items that
+appear as themselves on screen, ignore their state, don't issue
+actions, and don't perform effects. The \texttt{reacl-c.dom}
+namespaces provides a set of simple item combinators corresponding to
+the DOM elements. The following example displays an external link,
+styled with a blue border.
 %
 \begin{verbatim}
 (dom/a
@@ -1289,8 +1303,8 @@ given state. The following item displays ``Hello World'':
              (str state " World"))
 \end{verbatim}
 %
-Interactivity emanates from event handlers attached to dom items (or
-DOM item combinators). The following item implements a simple text input:
+Interactivity emanates from event handlers attached to dom items. The
+following item implements a simple text input:
 %
 \begin{verbatim}
 (def input
@@ -1307,39 +1321,41 @@ DOM item combinators). The following item implements a simple text input:
 \end{verbatim}
 %
 In the \texttt{:onClick} handler we signal the intent to update the
-current state by returning a special \texttt{return} value. We can
-also issue actions with \texttt{(c/return :action ...)}.
+current state by returning a special \texttt{return} value. (You can
+also issue actions with \texttt{(c/return :action ...)} but we do not
+go into this feature here.)
 
 Usually we use \texttt{isolate-state}, which completely detaches the
 state of items below from the state of items above, very seldomly --
 for many applications just once at the top level. Usually we use the
 item combinator \texttt{c/focus} to make a child item responsible for
 \textit{a part} of the current state. \texttt{focus} takes a lens --
-either a function of both arity one (\textit{get}) and of arity two
-(\textit{putback}), a Clojure keyword, or a value from the
-\texttt{active.clojure.lens} library -- and a child item. The
-following example shows a small UI that manages a single entry in a
-phone book application.
+either a function of both arity one (\textit{GET}) and of arity two
+(\textit{PUTBACK}), a Clojure keyword, or a value from the
+\texttt{active.clojure.lens} library -- and a child item. Record field
+names defined by \texttt{def-record} from \texttt{active.data.record}
+are also lenses in this sense so these record definitions integrate
+nicely with reacl-c. The following example shows a small UI that
+manages a single entry in our phone book application.
 %
 \begin{verbatim}
-(def entry
-  ;; model: {:name "Name", :tel "123456"}
+(def entry-item
+  ;; model: entry
   (dom/div
    "Name:"
-   (c/focus :name input)
+   (c/focus entry-name input-item)
    "Tel:"
-   (c/focus :tel input)))
+   (c/focus entry-phone-number input-item)))
 \end{verbatim}
 %
 \texttt{focus} makes for very powerful glue. We can go from this small
 item that manages a single phone book entry to an item that manages an
-entire phone book just by using \texttt{focus} with a lens from
-\texttt{active.clojure.lens}:
+entire phone book (a sequence of entries) just by using \texttt{focus}
+with a lens from \texttt{active.clojure.lens}:
 %
 \begin{verbatim}
 (def phone-book
-  ;; model: [{:name "Name", :tel "123456"}
-  ;;         {:name "Joe", :tel "98765"}]
+  ;; model: sequence-of entry
   (c/dynamic
    (fn [entries]
      (apply
@@ -1347,7 +1363,7 @@ entire phone book just by using \texttt{focus} with a lens from
       (map (fn [idx]
              (c/focus
               (lens/at-index idx)
-              entry))
+              entry-item))
            (range
             (count entries)))))))
 \end{verbatim}
@@ -1356,9 +1372,8 @@ Here we map over the indices of the entries in the phone book and use
 \texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
 item for each phone book entry. This pattern is very common when
 dealing with lists. Since the code above only consists of regular
-function application and abstraction, we can use lexical extraction
-(wie heisst das richtig?) in order to distill this pattern into a
-custom combinator:
+lambda abstractions and referentially transparent expressions, we can
+distill this pattern into a custom combinator:
 %
 \begin{verbatim}
 (defn map-item [child-item]
@@ -1377,15 +1392,20 @@ custom combinator:
   (map-item entry))
 \end{verbatim}
 %
-For a rudimentary phone book application we also want to show a simple
+In contrast to Reacl components, items such as \texttt{child-item} are
+not wired to any other UI widgets, so the \texttt{map-item} combinator
+can use \texttt{focus} to establish a connection between its state and
+\texttt{child-item}'s state.
+%
+For our rudimentary phone book application we also want to show a simple
 button with a label ``Add new'' that inserts a new entry into the
 phone book. This button can directly work with the entire phone book
 state:
 %
 \begin{verbatim}
 (def empty-entry
-  {:name ""
-   :tel ""})
+  (entry entry-name ""
+         entry-phone-number ""))
 
 (def phone-book-with-add-button
   (dom/div
@@ -1394,119 +1414,35 @@ state:
     {:onClick
      (fn [phone-book _]
        (c/return
-        :state
         (conj phone-book
               empty-entry)))}
     "Add new")))
 \end{verbatim}
 %
-Of course we also want to be able to delete individual entries. We
-would like to display one delete button per entry. If we add such a
-button to the \texttt{entry} item constructor above, we're lacking the
-means to implement the button's functionality directly. We don't have
-to refactor our entire application, however. We can have the button
-issue an action, signalling our intent to delete a certain entry and
-handle the actual deletion further up in the item tree. We build a new
-entry item that reuses the old one and attaches a delete button:
-%
-\begin{verbatim}
-(def entry-2
-  ;; model: {:name "Name", :tel "123456"}
-  (dom/div
-   entry
-   (dom/button
-    {:onClick
-     (fn [_ _]
-       (c/return :action :delete))}
-    "Delete")))
-\end{verbatim}
-%
-Our custom item combinator \texttt{map-item} is no longer fit for
-purpose. We can make it more flexible by giving it an extra
-argument that describes how actions should be propagated.
-%
-\begin{verbatim}
-(defn map-item-2
-  [child-item reduce-action-f]
-  (c/dynamic
-   (fn [xs]
-     (apply
-      dom/div
-      (map (fn [idx]
-             (c/handle-action
-              (c/focus
-               (lens/at-index idx)
-               child-item)
-              (fn [_ ac]
-                (c/return
-                 :action
-                 (reduce-action-f idx ac)))))
-           (range
-            (count xs)))))))
-\end{verbatim}
-%
-Our new phone book item uses this function to enrich the
-deletion intent with the information about which index to delete:
-%
-\begin{verbatim}
-(def phone-book-3
-  (map-item-2 (entry-2)
-              (fn [idx _action]
-                [:delete idx])))
-\end{verbatim}
-%
-We can handle actions with the \texttt{c/handle-action} item
-combinator. \texttt{c/handle-action} takes an item and a handler
-function. Every action that is emitted from the inner item is run
-through the handler function, which takes the current state and the
-action as arguments. The handler function can return
-\texttt{(c/return ...)} values just like an event handler as seen
-above. A reasonable place to actually handle deletion is the same
-place where we handle additions.
-%
-\begin{verbatim}
-(defn handle-phone-book-actions [phone-book action]
-  (assert (vector? action))
-  (case (first action)
-    :add
-    (conj phone-book
-          empty-entry)
-
-    :delete
-    (remove-entry-at-index
-     phone-book
-     (second action))))
-
-(def phone-book-with-add-button-2
-  (c/handle-action
-   (dom/div
-    (phone-book-3)
-    (dom/button
-     {:onClick
-      (fn [phone-book _]
-        (c/return :action [:add]))}
-     "Add new"))
-   (fn [phone-book action]
-     (c/return
-      :state
-      (handle-phone-book-actions phone-book action)))))
-\end{verbatim}
-%
-
+Here we also use a shorthand notation. Instead of explicitly creating
+a \texttt{(c/return :state new-state)} value, you can just return
+\texttt{new-state}.
 
 \subsection{The View Model -- functionally}
 
 In the phone book application above, when a user clicks the ``Add
 new'' button, we insert a new entry below the others. The user can
-then click on the name input field and enter the new entry's name. To
-make our application more convenient to use, we want to set keyboard
-focus on the name input automatically as soon as the user clicks the
-add button. Implementation-wise we might decide to use the browser's
-built-in keyboard focus handling with the \texttt{autoFocus}
-attribute.
-
+then click on the name input field and enter the new entry's name. The
+newly inserted widget looks like any other list item, however. In
+order to give the user explicit feedback as to what happened on
+screen, we now want to highlight newly inserted entries. As we argued
+above, it is hard to formally specify what it means exactly for a UI
+widget to be emphasized. We should still extract the notion of
+emphasis into an isolated item combinator:
+%
+\begin{verbatim}
+(defn emphasize [item]
+  (dom/div {:style {:border "1px solid blue"}}
+           item))
+\end{verbatim}
+%
 So far the domain model and the state of our items was the same. Now
-we also have to keep track of which entry to \texttt{autoFocus}. We
+we also have to keep track of which entry to \texttt{emphasize}. We
 now separate our domain model from the model of our UI state. This
 pattern is well-known in the OO community, where it is referred to as
 the ``Model-View-ViewModel'' pattern (MVVM). Here we give a brief
@@ -1514,108 +1450,76 @@ introduction of how to use view models functionally.
 
 Our view model includes a phone book entry from the core domain model,
 enriched with the information whether this particular entry should be
-autofocused. A phone book consists of a sequence of such entries.
+emphasized. A phone book view model consists of a sequence of such
+entries.
 %
 \begin{verbatim}
-(ns view-model
-   (require [core]
-            ...)
-
-(def-record ^:private entry
-  [entry-entry :- core/entry
-   entry-autofocus?])
-
-(def-record ^:private phone-book
-  [phone-book-entries :- (r/sequence-of entry)])
+(def-record entry-vm
+  [entry-vm-entry :- entry
+   entry-vm-emphasized? :- realm/boolean])
 \end{verbatim}
 %
-It doesn't make any sense to have more than one \texttt{entry} with
-\texttt{entry-autofocus?} set to \texttt{true}. There are many ways to
+It probably doesn't make any sense to have more than one \texttt{entry} with
+\texttt{entry-vm-emphasized?} set to \texttt{true}. There are many ways to
 ensure this constraint. Here we decide to provide a set of smart
 constructors and accessors that keep the constraint satisfied. First,
 we need the idea of an empty phone book:
 %
 \begin{verbatim}
-(def empty (phone-book phone-book-entries []))
+(def empty-phone-book [])
 \end{verbatim}
 %
-We also need a way to add a new entry to the phone book. This is the
-place where we set the \texttt{autofocus?} flags:
+In our minimal phone book example the only way to build larger phone
+books is to use an \texttt{add-new-entry} function:
 %
 \begin{verbatim}
-(defn unfocus [entry]
-  (entry-autofocus? entry false))
+(defn deemphasize [entry]
+  (entry-vm-emphasized? entry false))
 
-(defn add-entry [phone-book core-entry]
-  (lens/overhaul phone-book phone-book-entries
-                 (fn [entries]
-                   (conj (mapv unfocus entries)
-                         (entry-vm entry-entry core-entry
-                                   entry-autofocus? true)))))
+(defn add-new-entry [entries]
+  (conj (mapv deemphasize entries)
+        (entry-vm entry-vm-entry empty-entry
+                  entry-vm-emphasized? true)))
 \end{verbatim}
 %
-And we need a function to delete entries:
+The \texttt{add-new-entry} is a perfect candidate for thorough
+testing: It is a pure function with precise semantics and a
+non-trivial implementation.
+
+These definitions along with the field lenses \texttt{entry-vm-entry},
+\texttt{entry-vm-emphasized?}, \texttt{entry-name}, and
+\texttt{entry-phone-number} make up our view model. The corresponding
+UI code is straightforward. The new entry item \texttt{entry-item-2}
+handles emphasis conditionally and then delegates on to the
+\texttt{entry-item}.
 %
 \begin{verbatim}
-(defn delete-entry-at-index [phone-book idx]
-  (lens/overhaul phone-book
-                 phone-book-entries
-                 remove-entry-at-index
-                 idx))
-\end{verbatim}
-%
-TODO: new names for lenses above (e.g. phone-book-entry-at-index)
-%
-This concludes the (view) modelling part. The corresponding UI code is
-very similar to the code above. First, we have to parameterize the
-input item with an autofocus flag.
-%
-\begin{verbatim}
-(defn input [autofocus?]
-  (c/dynamic
-   (fn [text]
-    (dom/input
-     {:autoFocus autofocus?
-      :value text
-      :onChange
-      (fn [old-text event]
-        (c/return
-         :state
-         (.-value
-          (.-target event))))}))))
-\end{verbatim}
-%
-The new entry item now has to handle focus as well.
-%
-\begin{verbatim}
-(defn entry [autofocus?]
-  (dom/div
-   "Name:"
-   (c/focus core-entry-name (input autofocus?))
-   "Tel:"
-   (c/focus core-entry-tel (input false))))
-\end{verbatim}
-%
-The outer entry item -- the one that adds a delete button -- now has to use the new \texttt{entry*}:
-%
-\begin{verbatim}
-(def entry-2
+(def entry-item-2
   ;; model: entry-vm
   (c/dynamic
    (fn [entry-vm]
-     (dom/div
-      (c/focus entry-entry
-               (entry
-                (entry-autofocus? entry-vm)))
-      (dom/button
-       {:onClick
-        (fn [_ _]
-          (c/return :action :delete))}
-       "Delete")))))
+     ((if (entry-vm-emphasized? entry-vm)
+        emphasize
+        identity)
+      (c/focus entry-vm-entry
+               entry-item)))))
+
+(def phone-book-item-2
+  (map-item entry-item-2))
 \end{verbatim}
 %
-The rest of the code stays exactly the same.
-
+The phone book still needs an ``Add new'' button. This button
+now simply calls the right function from the view model.
+%
+\begin{verbatim}
+(def phone-book-with-add-button-item-2
+  (dom/div
+   phone-book-item-2
+   (dom/button
+    {:onClick add-new-entry}
+    "Add new")))
+\end{verbatim}
+%
 
 \section{Conclusion}
 \label{sec:conclusion}
