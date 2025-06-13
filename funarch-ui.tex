@@ -1424,9 +1424,9 @@ emphasis into an isolated item combinator:
            item))
 \end{verbatim}
 %
-So far the domain model and the state of our items was the same. Now
+So far the domain model and the state of our items is the same. Now
 we also have to keep track of which entry to \texttt{emphasize}. We
-now separate our domain model from the model of our UI state. This
+therefore separate our domain model from the model of our UI state. This
 pattern is well-known in the OO community, where it is referred to as
 the ``Model-View-ViewModel'' pattern (MVVM). Here we give a brief
 introduction of how to use view models functionally.
@@ -1442,7 +1442,7 @@ entries.
    entry-vm-emphasized? :- realm/boolean])
 \end{verbatim}
 %
-It probably doesn't make any sense to have more than one \texttt{entry} with
+It probably doesn't make sense to have more than one \texttt{entry} with
 \texttt{entry-vm-emphasized?} set to \texttt{true}. There are many ways to
 ensure this constraint. Here we decide to provide a set of smart
 constructors and accessors that keep the constraint satisfied. First,
@@ -1465,7 +1465,7 @@ books is to use an \texttt{add-new-entry} function:
                   entry-vm-emphasized? true)))
 \end{verbatim}
 %
-The \texttt{add-new-entry} is a perfect candidate for thorough
+\texttt{add-new-entry} is a perfect candidate for thorough
 testing: It is a pure function with precise semantics and a
 non-trivial implementation.
 
