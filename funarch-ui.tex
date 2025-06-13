@@ -1162,35 +1162,38 @@ pattern.
 
 Reacl improves on its predecessors in terms of modularity. Modularity
 is a neccessary prerequisite for reusability, but it is not
-sufficient. Reacl often makes it cumbersome to extract and reify certain
-aspects of user interfaces, limiting reusability. This is primarily
-due to two reasons.
+sufficient. Reacl allows for many different styles of component
+composition, which makes it hard to write widely applicable reusable
+abstractions. Over the years there emerged some patterns of writing
+Reacl components that allowed for a more compositional programming
+style. This eventually led to the creation of the \textit{reacl-c}
+library.
 
-\begin{enumerate}
-  \item Reacl requires early binding of state by default. This means
-    that when a user creates a new instance \texttt{C} of a Reacl
-    component, they have to decide then and there which other
-    component's state \texttt{C}'s state relates to and in which
-    way. In most cases, and as you can see in the examples above, the
-    ``other component'' is \texttt{this}, which is the conventional
-    name for the instance of the component that is being constructed
-    at the current moment. This pattern goes a long way. However,
-    early binding of state is usually at odds with the creation of
-    custom component combinators.
-  \item The guideline for dealing with effects in Reacl is to issue
-    actions describing the intent. These actions are then handled at
-    the top-level. If the action issuer needs a response, it has to
-    pack its reference into the action and the action handler has to
-    \texttt{send-message!} the response to that reference.
-\end{enumerate}
-
-Both of these points were explicit design decisions. These choices
-were made under the assumption that UI-specific code makes up a
-substantial part of UI software and that these UI-specific parts will
-be thoroughly tested. As described in the previous section, we have
-since come to the realization that UI code is inherently difficult to
-test regardless of any technological choices and our focus should
-therefore be in minimizing such parts.
+One aspect where reacl-c differs from Reacl is the point at which the
+library user has to make decisions about the relationship between a
+parent component's state and its child components' states. In Reacl,
+you have to decide about this relationship when you create a
+component, i.e. a new instance of a class. In the example above we
+create an instance of the \texttt{text-field} class. We have to decide
+then and there which component this text field's state relates to and
+how:
+%
+\begin{verbatim}
+(text-field
+ (reacl/opt :reaction
+  (reacl/reaction
+   this
+   ...))
+ current-name)
+\end{verbatim}
+%
+If you want to defer this decision -- maybe because you want to use a
+component combinator that has to operate on state as well -- you have
+to write a function that takes the \texttt{reacl/opt} value and
+\texttt{current-name} as arguments and you have to build a combinator
+that works on these component constructor functions. It turns out that
+uniform component constructors are almost always better suited to
+composition than class instances.
 
 \subsection{User interface combinators}
 
