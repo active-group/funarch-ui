@@ -997,24 +997,27 @@ therefore be in minimizing such parts.
 \subsection{User interface combinators}
 
 The ClojureScript library \textit{reacl-c} consists of a set of UI
-primitives -- \textit{items} -- and combinators thereof. The library
-centers around three namespaces:
+primitives -- \textit{items} -- and combinators thereof. For our
+example we first import the three relevant namespaces from reacl-c
+along with the active.data namespaces. We build on the same domain
+model for phonebooks as described above.
 %
 \begin{verbatim}
 (ns example
   (:require [reacl-c.core :as c :include-macros true]
             [reacl-c.main :as main]
-            [reacl-c-.dom :as dom]))
+            [reacl-c-.dom :as dom]
+            [active.data.record :as r :refer-macros [def-record]))
 \end{verbatim}
 %
-All items have a notion of state (even though some of them ignore it),
-items may have a visual appearance, items may issue actions, and items
-may perform effects. Strings are simple items that appear as
-themselves on screen, ignore their state, don't issue actions, and
-don't perform effects. The \texttt{reacl-c.dom} namespaces provides a
-set of simple item combinators corresponding to the DOM elements. The
-following example displays an external link, styled with a blue
-border.
+All reacl-c items have a notion of state (even though some of them
+ignore it), items may have a visual appearance, items may issue
+actions, and items may perform effects. Strings are simple items that
+appear as themselves on screen, ignore their state, don't issue
+actions, and don't perform effects. The \texttt{reacl-c.dom}
+namespaces provides a set of simple item combinators corresponding to
+the DOM elements. The following example displays an external link,
+styled with a blue border.
 %
 \begin{verbatim}
 (dom/a
@@ -1072,24 +1075,23 @@ following example shows a small UI that manages a single entry in a
 phone book application.
 %
 \begin{verbatim}
-(def entry
-  ;; model: {:name "Name", :tel "123456"}
+(def entry-item
+  ;; model: entry
   (dom/div
    "Name:"
-   (c/focus :name input)
+   (c/focus entry-name input)
    "Tel:"
-   (c/focus :tel input)))
+   (c/focus entry-phone-number input)))
 \end{verbatim}
 %
 \texttt{focus} makes for very powerful glue. We can go from this small
 item that manages a single phone book entry to an item that manages an
-entire phone book just by using \texttt{focus} with a lens from
-\texttt{active.clojure.lens}:
+entire phone book (a sequence of entries) just by using \texttt{focus}
+with a lens from \texttt{active.clojure.lens}:
 %
 \begin{verbatim}
 (def phone-book
-  ;; model: [{:name "Name", :tel "123456"}
-  ;;         {:name "Joe", :tel "98765"}]
+  ;; model: sequence-of entry
   (c/dynamic
    (fn [entries]
      (apply
@@ -1097,7 +1099,7 @@ entire phone book just by using \texttt{focus} with a lens from
       (map (fn [idx]
              (c/focus
               (lens/at-index idx)
-              entry))
+              entry-item))
            (range
             (count entries)))))))
 \end{verbatim}
