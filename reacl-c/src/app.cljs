@@ -7,9 +7,11 @@
             [active.data.realm :as realm]))
 
 
+; Model
 (def-record entry
-  [entry-name
-   entry-phone-number])
+  [entry-id :- realm/integer
+   entry-name :- realm/string
+   entry-phone-number :- realm/string])
 
 (def empty-entry
   (entry entry-name ""
@@ -69,44 +71,41 @@
    (dom/button
     {:onClick
      (fn [phone-book _]
-       (c/return
-        :state
-        (concat phone-book
-                [empty-entry])))}
+       (concat phone-book
+               [empty-entry]))}
     "Add new")))
 
 ;; ---- The functional view model
 
-(defn emphasized [item]
-  (dom/div {:style {:border "1px solid blue"}}
-           item))
-
 (def-record entry-vm
-  [entry-entry :- entry
-   entry-emphasized? :- realm/boolean])
-
-(defn deemphasize [entry]
-  (entry-emphasized? entry false))
+  [entry-vm-entry :- entry
+   entry-vm-emphasized? :- realm/boolean])
 
 (def empty-phone-book [])
 
-(defn add-entry [entries core-entry]
+(defn deemphasize [entry]
+  (entry-vm-emphasized? entry false))
+
+(defn add-new-entry [entries]
   (conj (mapv deemphasize entries)
-        (entry-vm entry-entry core-entry
-                  entry-emphasized? true)))
+        (entry-vm entry-vm-entry empty-entry
+                  entry-vm-emphasized? true)))
 
 ;; ---
+
+(defn emphasize [item]
+  (dom/div {:style {:border "1px solid blue"}}
+           item))
 
 (def entry-item-2
   ;; model: entry-vm
   (c/dynamic
    (fn [entry-vm]
-     ((if (entry-emphasized? entry-vm)
-        emphasized
+     ((if (entry-vm-emphasized? entry-vm)
+        emphasize
         identity)
-      (dom/div
-       (c/focus entry-entry
-                entry-item))))))
+      (c/focus entry-vm-entry
+               entry-item)))))
 
 (def phone-book-item-2
   (map-item entry-item-2))
@@ -115,9 +114,7 @@
   (dom/div
    phone-book-item-2
    (dom/button
-    {:onClick
-     (fn [entries _]
-       (c/return :state (add-entry entries empty-entry)))}
+    {:onClick add-new-entry}
     "Add new")))
 
 ;; ---
