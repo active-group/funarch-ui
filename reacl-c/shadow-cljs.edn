@@ -1,0 +1,7 @@
+{:deps
+ true
+
+ :builds
+ {:app
+  {:target :browser
+   :modules {:main {:init-fn app/init}}}}}
