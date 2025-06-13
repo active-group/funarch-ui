@@ -776,6 +776,7 @@ discussion of this paper.
 \section{UI Toolkits Elsewhere}
 
 \section{Functional Modularity Challenges}
+\label{sec:modularity-challenges}
 
 Taking Elm's and React's Model-View-Update pattern as a starting
 point, we summarize the architectural tradeoffs listed in
@@ -806,7 +807,7 @@ number.  The application manages the phone book in a functional
 manner, as a functional list of immutable entry records.  Its UI
 contains a sub-view component that allows viewing and editing a single
 name within a text field, along with a ``Submit'' button for actually
-changing the address book.
+changing the phonebook.
 
 % FIXME: maybe a figure
 
@@ -818,7 +819,7 @@ application, which must update its phone-book reference.  So strictly
 speaking, updating the state is not the job of the name UI component
 but of all the components above it in the hierarchy that need to
 re-construct the state with the one changed name, and finally change
-to global reference at the top.
+the global reference at the top.
 
 \subsection{UI-Local State}
 
@@ -862,6 +863,201 @@ along the way from its producer to its handler.
 
 \section{From Model-View-Update to Reacl}
 
+FIXME: Temperature example?
+
+As a response to challenges described in the previous section, we we
+started in 2014 to work on our own UI toolkit for ClojureScript,
+\textit{Reacl}~\cite{Reacl}.  This section describes how it tackles
+the modularity challenges, using the phonebook example.  Reacl evolved
+significantly over its lifetime, eventually leading to its successor
+reacl-c described in Section~\ref{sec:reacl-c}.  We describe version 2
+from about 2019.
+
+The phonebook example starts with a namespace declaration that imports
+both Reacl and the record library from \textit{Active
+  Data}~\cite{ActiveData}, a library for making data modeling
+explicit in Clojure(Script):
+%
+\begin{verbatim}
+(ns examples.phonebook.core
+  (:require [reacl2.core :as reacl :include-macros true]
+            [reacl2.dom :as dom :include-macros true]
+            [active.data.record :include-macros true :as record
+             :refer-macros (def-record)]
+            [active.data.realm :as realm]))
+\end{verbatim}
+%
+We use Active Data to declare a record type for an entry in the
+phonebook, the central aspect of the model:
+%
+\begin{verbatim}
+(def-record entry
+  [entry-id :- realm/integer
+   entry-name :- realm/string
+   entry-phone-number :- realm/string])
+\end{verbatim}
+%
+In this declaration, \texttt{entry} is the both the record type and
+constructor, and \texttt{entry-id} (a unique id identifying the entry
+even across name changes), \texttt{entry-name},
+\texttt{entry-phone-number} each double as field name and
+getter/selector.  The \texttt{realm/} annotations declare the run-time
+types of the fields of the record.
+
+We now construct a UI for editing the name of an entry.  To that end,
+we start with a reusable component for an editable text field.  This
+is implemented via a \textit{class} in Reacl that defines how the
+text-field components are rendered and behave:
+%
+\begin{verbatim}
+(def-record change-text
+  [change-text-text :- realm/string])
+
+(reacl/defclass text-field
+  this text []
+  render
+  (dom/input {:onchange 
+              (fn [e]
+                (reacl/send-message!
+                 this
+                 (change-text change-text-text (.. e -target -value))))
+              :value text})
+  handle-message
+  (fn [msg]
+    (cond
+      (record/is-a? change-text msg)
+      (reacl/return :app-state (change-text-text msg)))))
+\end{verbatim}
+%
+In this declaration, \texttt{this} is the name that the code can use
+to refer to the current component (similar to \texttt{this} in Java),
+and \texttt{text} is the \textit{app state} of the component---its
+model.
+
+Two clauses follow, the first of which is \texttt{render}, which
+generates the view from the app state \texttt{text}.  This is
+straightforward HTML with a callback attached that fires whenever the
+user changes the text.  In that case, the callback sends a
+\textit{message} to the component that describes the user's intention,
+in this case to change the text in the form of a \texttt{change-text}
+record.
+
+Components can send messages to arbitrary other components, but it is
+typical to send them ``to themselves,'' as is shown here.  The
+\texttt{handle-message} clause defines how a component reacts to a
+message it receives.  In this case, the only possible message is a
+\texttt{change-text} record, but often components allow for more than
+one kind of interaction, which is why there is \texttt{cond} here that
+identifies the \texttt{change-text} record.  The function then calls
+\texttt{reacl/return}, which constructs a value that tells Reacl what
+to do---in this case replace the app state of the component with the
+text from the message, effectively performing an update as in the
+Model-View-Update pattern.
+
+In principle, the callback attached to the text field could itself
+perform the update---first creating and then dispatching on a message
+is more work.  However, this separation of concerns makes the
+\texttt{handle-message} function testable, even outside of the running
+UI application.  (The \texttt{render} function is also testable by
+inspecting the returned HTML, but this comes with caveats described in
+Section~\ref{sec:vague-semantics}.)
+
+Next, we create a UI component for actually editing a name from a
+phonebook.  The idea is that the phonebook will only be changed when
+the user clicks on a \texttt{Submit} button.  Consequently, the app
+state of the name component, while it is also a string, will only
+change when \texttt{Submit} is pressed.  However, the component still
+needs to keep track of current content of the text field.  To that
+end, it keeps a \textit{local state}, which is not reflected in the
+model state.  The class starts like this:
+%
+\begin{verbatim}
+(reacl/defclass name-editor
+  this name []
+  local-state [current-name name]
+\end{verbatim}
+%
+Here, \texttt{name} is the app state of the component.  The local
+state is called \texttt{current-name} and its initial value upon
+creation of the component is \texttt{name}.  Here is the
+\texttt{render} clause, which creates an HTML form:
+%
+\begin{verbatim}
+  render
+  (dom/form
+   {:onsubmit (fn [e]
+                (.preventDefault e)
+                (reacl/send-message! this (submit)))}
+   (dom/div (text-field
+             (reacl/opt :reaction
+                        (reacl/reaction
+                         this
+                         (fn [text]
+                           (change-name change-name-text text))))
+             current-name)
+            (dom/button "Submit")))
+\end{verbatim}
+%
+This calls \texttt{text-field} to create a text-field component,
+passing it a \textit{reaction} and \texttt{current-name} as its app
+state.  (This shows that one component's app state can be another
+component's local state.)  The reaction defines how the
+\texttt{name-editor} component reacts to changes in the
+\texttt{text-field} component's app state (passed in as \texttt{text}
+to the function), typically by sending a message.  Here, the reaction
+sends a \texttt{change-name} message to \texttt{this}, defined by the
+following record declaration:
+%
+\begin{verbatim}
+(def-record change-name
+  [change-name-text :- realm/string])
+\end{verbatim}
+%
+The form callback, which gets called when the user clicks
+\texttt{Submit}, sends a singleton \texttt{submit} message as per this
+record declaration:
+%
+\begin{verbatim}
+(def-record submit [])
+\end{verbatim}
+%
+Finally, the \texttt{handle-message} function dispatches on the two
+messages, updating the local state for \texttt{change-name} and the
+app state for \texttt{submit}:
+%
+\begin{verbatim}
+  handle-message
+  (fn [msg]
+    (cond
+      (record/is-a? change-name msg)
+      (reacl/return :local-state (change-name-text msg))
+
+      (record/is-a? submit msg)
+      (reacl/return :app-state current-name))))
+\end{verbatim}
+%
+This example shows how Reacl deals with the three challenges described
+in Section~\ref{sec:modularity-challenges}:
+%
+\begin{description}
+\item[Global Model State Update] Each \texttt{handle-message} function
+  only describes how to update its own model/app state, with no
+  knowledge and therefore coupling to the global state of the
+  application.
+\item[UI-Local State] The \texttt{local-state} mechanism keeps local
+  state out of the model.
+\item[Global Dispatch] The \texttt{handle-message} function is per
+  component class, no global dispatch is necessary.
+\end{description}
+%
+It should be noted that Reacl also has a mechanism not described here
+for side effects external to the UI application, such as network
+communication.  In order to make the core of the UI application pure,
+it creates an \textit{action}, which is similar to a message with the
+difference that it does not specify a receiver but gets propagated
+upwards in the tree formed by the components until a component either
+handles it or transforms it into an action understood further up.
+This achieves modularity for actions in a way similar to reactions.
 
 \section{Persistent Pains}
 
@@ -871,6 +1067,7 @@ considered difficult for reasons that are beyond the grasp of UI
 frameworks and libraries.
 
 \subsection{Inherently vague semantics}
+\label{sec:vague-semantics}
 
 Many functional user interface frameworks and libraries claim that
 they allow users to describe their UI as a pure function from state
@@ -961,6 +1158,7 @@ argument for the \textit{functional view model}, a UI programming
 pattern.
 
 \section{From Reacl to reacl-c}
+\label{sec:reacl-c}
 
 Reacl improves on its predecessors in terms of modularity. Modularity
 is a neccessary prerequisite for reusability, but it is not
@@ -1066,8 +1264,8 @@ also issue actions with \texttt{(c/return :action ...)}.
 Usually we use \texttt{isolate-state}, which completely detaches the
 state of items below from the state of items above, very seldomly --
 for many applications just once at the top level. Usually we use the
-item combinator \textt{c/focus} to make a child item responsible for
-\textit{a part} of the current state. \textt{focus} takes a lens --
+item combinator \texttt{c/focus} to make a child item responsible for
+\textit{a part} of the current state. \texttt{focus} takes a lens --
 either a function of both arity one (\textit{get}) and of arity two
 (\textit{putback}), a Clojure keyword, or a value from the
 \texttt{active.clojure.lens} library -- and a child item. The
@@ -1105,7 +1303,7 @@ with a lens from \texttt{active.clojure.lens}:
 \end{verbatim}
 %
 Here we map over the indices of the entries in the phone book and use
-\texttt{(c/focus (lens/at-index idx) ...)} to use the \textt{entry}
+\texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
 item for each phone book entry. This pattern is very common when
 dealing with lists. Since the code above only consists of regular
 function application and abstraction, we can use lexical extraction
