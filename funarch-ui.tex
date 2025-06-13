@@ -1226,9 +1226,12 @@ If you want to defer this decision -- maybe because you want to use a
 component combinator that has to operate on state as well -- you have
 to write a function that takes the \texttt{reacl/opt} value and
 \texttt{current-name} as arguments and you have to build a combinator
-that works on these component constructor functions. It turns out that
-uniform component constructors are almost always better suited to
-composition than class instances.
+that works on these component constructor functions (instead of
+working on components). It turns out that uniform component
+constructors are almost always better suited to composition than class
+instances.
+
+%% TODO: Mention lenses
 
 \subsection{User interface combinators}
 
