@@ -103,16 +103,16 @@
 \begin{abstract}
   Functional paradigms for user-interface (UI) programming have
   undergone significant evolution over the years, from early
-  monad-based approaches mimicking OO practice to modern
-  model-view-update frameworks.  Changing from the inherently
-  imperative classic Model-View-Controller pattern to functional
-  approaches has significant architectural impact, drasticallyg
-  reducing coupling and improving testability and maintainability.  On
-  the other hand, achieving good modularity with functional approaches
-  is an ongoing challenge.  This paper traces the evolution of
-  functional UI toolkits along with the architectural implications of
-  their designs, summarizes the current state of the art and discusses
-  remaining issues.
+  stream-based approaches, monad-based toolkits mimicking OO practice
+  to modern model-view-update frameworks.  Changing from the
+  inherently imperative classic Model-View-Controller pattern to
+  functional approaches has significant architectural impact,
+  drastically reducing coupling and improving maintainability and
+  testability.  On the other hand, achieving good modularity with
+  functional approaches is an ongoing challenge.  This paper traces
+  the evolution of functional UI toolkits along with the architectural
+  implications of their designs, summarizes the current state of the
+  art and discusses remaining issues.
 \end{abstract}
 
 %%
@@ -136,27 +136,34 @@
        <concept_desc>Software and its engineering~Functional languages</concept_desc>
        <concept_significance>500</concept_significance>
        </concept>
- </ccs2012>
+   <concept>
+       <concept_id>10011007.10011006.10011008.10011009.10011012</concept_id>
+       <concept_desc>Software and its engineering~Functional languages</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+    <concept>
+        <concept_id>10011007.10011006.10011066</concept_id>
+        <concept_desc>Software and its engineering~Development frameworks and environments</concept_desc>
+        <concept_significance>500</concept_significance>
+    </concept>
+</ccs2012>
 \end{CCSXML}
 
 \ccsdesc[500]{Computer systems organization~Architectures}
 \ccsdesc[500]{Software and its engineering~Software architectures}
 \ccsdesc[500]{Software and its engineering~Functional languages}
+\ccsdesc[500]{Software and its engineering~Development frameworks and environments}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-\keywords{functional programming, software architecture, education}
+\keywords{functional programming, software architecture, patterns,
+  graphical user interfaces}
 %% A "teaser" image appears between the author and affiliation
 %% information and the body of the document, and typically spans the
 %% page.
-\received{1 June 2023}
+\received{16 June 2025}
 
-% FIXME revise
-
-%%
-%% This command processes the author and affiliation and title
-%% information and builds the first part of the formatted document.
 \maketitle
 
 Implementing applications with graphical user interfaces (GUI) remains
@@ -178,9 +185,31 @@ This paper examines the evolution of UI toolkits and the resulting
 application architecture since their inception from a functional
 perspective.
 
-FIXME: overview
+\paragraph{Overview} Section~\ref{sec:ui-and-architecture} summarizes
+the software-architectural concepts relevant for the discussion in
+this paper.  Section~\ref{sec:mvc} reviews the Model-View-Controller
+pattern, the starting the point for all modern UI toolkits.
+Section~\ref{sec:event-loop} discusses the event loop, and
+implementation aspect of many UI toolkits, along with its
+architectural implications.  Section~\ref{sec:functional-ui} reviews
+early functional UI toolkits.  Section~\ref{sec:universe-teachpack}
+describes a transition point between these early toolkits and the
+toolkits of the modern era---Racket's Universe teachpack.
+Section~\ref{sec:elm-react} discusses Elm and React, two
+implementations of the functional Model-View-Update pattern.
+Section~\ref{sec:ui-toolkits-elsewhere} briefly reviews modern
+object-oriented toolkits for comparison.  The Model-View-Update
+pattern still struggles with modularity issues described in
+Section~\ref{sec:modularity-challenges}.  Section~\ref{sec:reacl}
+describes the Reacl toolkit, designed to tackle these issues at a
+technical level.  Section~\ref{sec:persistent-pains} explains why UI
+programming remains a struggle despite all the technical progress, and
+Section~\ref{sec:reacl-c} describes the architectural approach that we
+have developed to deal with it.  Section~\ref{sec:conclusion} concludes.
+
 
 \section{UI and Software Architecture}
+\label{sec:ui-and-architecture}
 
 The job of a UI toolkit is to enable developers to create and maintain
 UI applications.  These dual requirements---effective creation and
@@ -201,7 +230,7 @@ though their further development is painful and costly and their
 maintainers understand the importance of moving away from an
 unsupported platform.
 
-Moving away from VB6 is so difficult because of a VB6 application
+Moving away from VB6 is so difficult because a VB6 application
 typically combines UI-related code, domain logic, and possible
 interactions with database and storage in the same function, making it
 all but impossible to replace any of these parts of the system
@@ -246,7 +275,8 @@ impact coupling, modularity, and thus maintainability?
 % state seems intrinsic
 
 \section{Model-View-Controller}
-
+\label{sec:mvc}
+  
 % http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
 
 MVC is---at least nominally---the ancestor of most contemporary UI
@@ -511,6 +541,7 @@ creating a style of programming colloquially known as \textit{callback
   hell}.
 
 \section{Functional UI Toolkits: The Early Days}
+\label{sec:functional-ui}
 
 This section briefly describes some early UI tookits for functional
 languages.  We focus on toolkitts that implemented genuinely
@@ -673,11 +704,12 @@ problem in this context: The video games realistically implemented in
 a video game are simple enough that unified state is appropriate.  It
 does prevent easily scaling the approach to realistic UIs.
 
-% Conal's UI paper
+% FIXME: Conal's UI paper
 % http://conal.net/papers/Eros/
 % PureScript/Halogen
 
 \section{The Evolution of Elm and React}
+\label{sec:elm-react}
 
 Elm~\cite{Elm} is a UI toolkit and companion Haskell-like language
 that translates to JavaScript and thus allows implementing web
@@ -771,9 +803,10 @@ powerful enough to enable even complex applications.  Consequently, we
 take Model-View-Update as the starting point for the further
 discussion of this paper.
 
-% Redux?
+% FIXME: Redux?
 
 \section{UI Toolkits Elsewhere}
+\label{sec:ui-toolkits-elsewhere}
 
 \section{Functional Modularity Challenges}
 \label{sec:modularity-challenges}
@@ -862,6 +895,7 @@ case, the UI toolkit must offer a mechanism to transform the message
 along the way from its producer to its handler.
 
 \section{From Model-View-Update to Reacl}
+\label{sec:reacl}
 
 FIXME: Temperature example?
 
@@ -1060,11 +1094,12 @@ handles it or transforms it into an action understood further up.
 This achieves modularity for actions in a way similar to reactions.
 
 \section{Persistent Pains}
+\label{sec:persistent-pains}
 
 User interface construction remains a struggle. In addition to
 challenges described above, UI programming -- and testing -- is
 considered difficult for reasons that are beyond the grasp of UI
-frameworks and libraries.
+tools.
 
 \subsection{Inherently vague semantics}
 \label{sec:vague-semantics}
@@ -1565,7 +1600,10 @@ The outer entry item -- the one that adds a delete button -- now has to use the 
 The rest of the code stays exactly the same.
 
 
+\section{Conclusion}
+\label{sec:conclusion}
 
+FIXME
 
 %%
 %% The next two lines define the bibliography style to be used, and
