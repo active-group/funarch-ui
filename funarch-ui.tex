@@ -212,13 +212,12 @@ have developed to deal with it.  Section~\ref{sec:conclusion} concludes.
 \label{sec:ui-and-architecture}
 
 The job of a UI toolkit is to enable developers to create and maintain
-UI applications.  These dual requirements---effective creation and
-effective maintenance---tend to be in conflict.  This is because
-creating the initial version of a software system as quickly and
-cheaply as possible often produces code that is expensive to maintain.
-This is especially pernicious in practice, as most the of the cost
-produced by a software system is in maintenance, not initial
-creation~\cite{GreenBook}.
+UI applications.  These dual requirements---fast creation and
+effective maintenance---tend to be in conflict.  The initial version
+of a software system as quickly and cheaply as possible often produces
+code that is expensive to maintain.  This is especially pernicious in
+practice, as most the of the cost produced by a software system is in
+maintenance, not initial creation~\cite{GreenBook}.
 
 This phenomenon seems to be especially pronounced in GUI applications:
 The Visual Basic 6 (VB6) environment for building such
@@ -232,7 +231,7 @@ unsupported platform.
 
 Moving away from VB6 is so difficult because a VB6 application
 typically combines UI-related code, domain logic, and possible
-interactions with database and storage in the same function, making it
+interactions with a database and storage in the same function, making it
 all but impossible to replace any of these parts of the system
 independently.  This \textit{coupling} between the UI, the domain
 logic, and the storage logic prevents piecewise migration to a
@@ -243,7 +242,7 @@ infeasible, and thus these projects are stuck.
 The problem of these VB6 projects and many other projects that run
 into high maintenance costs is \textit{coupling}~\cite{GreenBook},
 dependencies between different conceptual building blocks of the
-software that require changes in place to be accompanied by changes in
+software. Coupling dependencies cause changes in one place to be require changes in
 other places.  Consequently, the central concern of software
 architecture is to enable effective long-term maintenance by keeping
 coupling down.  A software project can control coupling through its
@@ -279,15 +278,13 @@ impact coupling, modularity, and thus maintainability?
   
 % http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
 
-MVC is---at least nominally---the ancestor of most contemporary UI
+MVC is the ancestor of most contemporary UI
 paradigms and frameworks.  The separation of the model from the view
 is universally beneficial from an architectural standpoint.
 Developers can change the UI and replace the UI toolkit without
 changing the model.  Moreover, since the model can function without
 the UI, testing automation is significantly easier compared to a
-tightly coupled view.  (If the only way to manipulate the model is
-through the UI, automated tests need to remote-control the UI, which
-is tedious to implement and brittle.)
+tightly coupled view.
 
 MVC programs need to keep the view current when the state of the model
 changes.  To that end, models typically implement a variation of the
@@ -299,7 +296,8 @@ view, and its role is unimportant for this discussion.)
 As the \texttt{update:} method informs the view of state changes, this
 approach is inherently imperative.  MVC has nice modularity
 properties, as each part of the model only needs to be coupled to
-``its'' part of the view.  It also creates several challenges to
+``its'' part of the view, and composition is easy.
+It also creates several challenges to
 software architects:
 \label{sec:challenges}
 %
@@ -307,15 +305,15 @@ software architects:
 \item Keeping the view current with respect for the model involves two
   tasks: initially \emph{constructing} the view by creating the
   various UI widgets, and later \emph{mutating} the view upon calls to
-  \texttt{update:}.  Conceptually, the result of mutating the view
+  \texttt{update:}  Conceptually, the result of mutating the view
   should be the same as re-constructing the view, but the concrete
   code for both is quite different, implementing the same logic twice.
-\item To achieve modularity, architects should like to split a large,
+\item To achieve modularity, architects should be able to split a large,
   complex view into loosely coupled subviews.  This raises the
   question of how big those subviews should be. Making them large and
   correspondingly having them represent a largher chunk of the model
   simplifies the change logic, as it requires fewer implementations of
-  \texttt{update:}, However it also increases coupling between model
+  \texttt{update:} However it also increases coupling between model
   and view.  Moreover, it causes potential performance issues when the
   typical change is only to a small part of the model and only needs a
   small part of the view to change: In that case, \texttt{update:}
@@ -336,6 +334,7 @@ Consider the following practical example:
 \begin{verbatim}
 class Weather(field pressure: Pressure,
               field temperature: Temperature) {
+  ...
 }
 
 interface Observer {
@@ -446,9 +445,11 @@ model and view.
 class TemperatureView2
   (field temperatureModel: Temperature) {
   var celsiusView =
-    new TextField(toText(kToC(temperatureModel.kelvin)))
+    new TextField
+      (toText(kToC(temperatureModel.kelvin)))
   var fahrenheitView =
-    new TextField(toText(kToF(temperatureModel.kelvin)))
+    new TextField
+      (toText(kToF(temperatureModel.kelvin)))
 
   temperatureModel.subscribe(new Observer {
       method update(newKelvin) {
@@ -495,9 +496,9 @@ three units.
 
 MVC UI toolkit also face a recurring implementation challenge: While a
 MVC program constructs the UI in terms of hierarchically organized
-views, it must display the UI as flat panel of pixels.  This means
+views, it must display the UI as a flat panel of pixels.  This means
 that technically users interact with the UI panel as a whole, and the
-UI toolkit must infer the view that is the target of the interactions.
+UI toolkit must infer the specific sub-view that is the target of the interactions.
 Consider for example a button, which the user presses by clicking with
 a mouse: The UI toolkit must infer from the position of the mouse
 cursor the particular button view at those coordinates, and cause its
@@ -532,7 +533,7 @@ asynchronously.  However, many UI toolkits insist on their functions
 being called from the thread the UI toolkit runs in, further
 complicating matters.
 
-Thus, typical MVC UI toolkits would couple the control flow of the
+Thus, typical MVC UI toolkits couple the control flow of the
 central event loop to the control flow of the subscriber callbacks,
 which includes the code that manipulates the model.  The restrictions
 resulting from this coupling often force developers to write these
@@ -557,7 +558,7 @@ Standard ML for arbitrarily assembling communication events.  EXene
 uses Concurrent ML to solve the event-loop problem described in
 Section~\ref{sec:event-loop}.  In eXene, the global event loop is
 relegated to the background in favor of individual event loops running
-in threads, each associated with a UI widget.  Rather than calling
+in threads, each associated with a particular UI widget.  Rather than calling
 subscriber methods directly, the event loop sends asynchronous
 messages to the widget event loops.  This decouples the control flow
 of the central event loop from that of its components.  Implementors
@@ -571,7 +572,7 @@ firmly imperative.  Thus, eXene inherits challenge \#1 from Section~\ref{sec:cha
 
 \subsection{Fudgets}
 
-While Standard ML is (also) an imperative language, Haskell is pure.
+While eXene's Standard ML is (also) an imperative language, Haskell is pure.
 Haskell's lazy evaluation makes just adding functions that ``do
 stuff'' impractical.  Consequently, interacting with the outside world
 was generally a challenge for the designers of Haskell during its
@@ -646,7 +647,7 @@ Teachers of introductory programming courses would often like to
 enable their students to write interactive programs.  The complexity
 of UI toolkits have traditionally made this difficult, at least in the
 era of toolkits described in the previous section.  The Racket system
-comes with a library called the \textit{Universe teachpack} for an
+since 2003 has come with a library called the \textit{Universe teachpack} for an
 introductory course~\cite{UniverseTeachpack} that allows writing
 distributed, interactive video games in a purely functional manner.
 
@@ -654,11 +655,12 @@ The Universe teachpack is basically ``half'' a UI toolkit.  It is an
 interesting subject for study, as it does address the pernicious
 challenge \#1 of the UI toolkits described above: The duplication of
 view logic between initial construction and later update.  We focus
-here on the ``world'' part of the universe teachpack, i.e.\ video
+here on the ``world'' part of the Universe teachpack, i.e.\ video
 games without distribution.  To implement such a video game, the
 developer only has to implement a small number of pure functions, all
 of which operate on a model called the ``world state,'' represented by
-a single value of type \texttt{WorldSt}:
+a single value of type \texttt{WorldSt}, which is entirely under the
+control of the program:
 %
 \begin{verbatim}
 on-draw : WorldSt → Image
@@ -701,8 +703,9 @@ sub-views while retaining a similarly simple API.  Thus, the Universe
 teachpack faces the sub-view challenge \#2 from
 Section~\ref{sec:challenges}.  This is not a
 problem in this context: The video games realistically implemented in
-a video game are simple enough that unified state is appropriate.  It
-does prevent easily scaling the approach to realistic UIs.
+a class  are simple enough that unified state is appropriate.  However,
+it does prevent easily scaling the approach to realistic UIs in a
+modular fashion.
 
 % FIXME: Conal's UI paper
 % http://conal.net/papers/Eros/
@@ -742,7 +745,7 @@ Figure~\ref{fig:mvu} illustrates the pattern.
 The \texttt{view} function constructs the UI, represented as a HTML
 tree.  Each interactive UI widget carries a message of the
 \texttt{Msg} type (also defined by the UI program) that is generated
-when the user interacts with the widget.  The Elm toolkit than passes
+when the user interacts with the widget.  The Elm toolkit then passes
 this message to the \texttt{update} function that generates a new
 model, which again gets fed into \texttt{view} and so on.  (The
 \texttt{Cmd} type allows triggering impure actions outside of user
@@ -756,7 +759,11 @@ completely avoids the circular dependency between view and model.
 The idea of Model-View-Update is quite similar to that of Racket's
 Universe teachpack: The view is re-constructed after every user
 interaction, and it uses a single, monolithic value for the model
-state.  The possible messages belong to a single central type.
+state.\footnote{Elm does not re-draw the entire UI on a call to the
+  update function, but instead compares the output of the view
+  function with the previous output, updating the DOM only for
+  differences between the two.}  The possible messages belong to a
+single central type.
 
 Consequently, Elm also inherits the Universe teachpack's architectural
 trade-offs: It solves challenge \#1 from Section~\ref{sec:challenges},
@@ -770,25 +777,25 @@ Shortly after Elm's initial release, Facebook released their web UI
 toolkit \textit{React}, which was also based on a variation of the
 Model-View-Update paradigm.
 
-React's \texttt{render} function corresponds to Elm's \texttt{view}
-function: It transforms the model state into a HTML tree.  Unlike Elm,
+React's \texttt{render} function corresponds to Elm's \texttt{view}:
+It transforms the model state into a HTML tree.  Unlike Elm,
 React has a composable notion of a UI component---a sub-view with its
-own associated state.  Consequently, \texttt{render} actually first
-creates a tree of UI component, which then gets rendered into HTML.
+own associated state.
 
 Where Elm gives the UI program complete freedom in the choice of
 \texttt{Model} type, React differentiates two kinds of state:
 Immutable \textit{properties} that flow downward in the sub-view tree.
 Each component also has its own associated mutable \textit{state},
 which needs to be organized as a JavaScript hash map.
+
 Thus, React's model of reactivity is different from Elm's: The UI
 program attaches imperative callbacks to UI components, and these
 callbacks can either mutate the component state or cause the
 properties to be replaced.  Conceptually, React ignores the difference
 between these two methods and re-renders the entire UI on each
-interaction, just like Elm.  Over time, mutating the state became
+interaction, just like Elm.  Mutating the state has become
 recognized as an anti-pattern in the React community, and updating the
-UI happens in a manner quite similar to Elm.
+UI now happens in a manner quite similar to Elm.
 
 % FIXME: maybe notes on the implementation
 
@@ -824,11 +831,12 @@ Section~\ref{sec:challenges}:
   state as a single mutable reference at the top level, with
   everything below managed functionally.
 \item Movel-View-Update also solves challenge \#3, as the cyclic call
-  chain is broken by the sequences succession of models and updates
+  chain is broken by the succession of models and updates
   presented to the UI toolkit.
 \end{enumerate}
 %
-Solving challenge~\#2 in means establishing a notion of ``UI
+Solving challenge~\#2 in the context of functional programming
+means establishing a notion of ``UI
 component'' without resorting to imperative state updates.  A solution
 approach needs to address facets described in this section: Updating
 the model state in a modular fashion, dealing with UI-local state, and
@@ -848,7 +856,7 @@ changing the phonebook.
 
 When the user changes the name, this is a local change from the point
 of view of the UI component, but leads to a global change in the
-application, which must update its phone-book reference.  So strictly
+application, which must update its phonebook reference.  So strictly
 speaking, updating the state is not the job of the name UI component
 but of all the components above it in the hierarchy that need to
 re-construct the state with the one changed name, and finally change
@@ -857,11 +865,12 @@ the global reference at the top.
 \subsection{UI-Local State}
 
 The model-state update happens when the user clicks the ``Submit''
-button.  However, the UI carries state even before that, as the user
-types in the new name, usually one letter at a time.  The UI toolkit
-must manage this ``UI-local'' state.  However, as it is an artifact of
-the UI widget and not an aspect of the model, the UI toolkit should
-enable separting them.
+button.  However, the UI has to manage the contents of the text field
+as the user types in the new name one letter at a time.  This
+intermediate state is of no interest to the model, hence it is
+``UI-local''.  As it is an artifact of the UI widget and not an aspect
+of the model, the UI toolkit should enable separting the model state
+from the UI-local state.
 
 Note that the classification between model state and UI-local state
 depends on context and judgement: The name UI component itself has two
@@ -880,11 +889,11 @@ the global dispatch modular requires associating it with an individual
 UI component rather than the program as a whole.
 
 However, a UI component is often not able to handle the messages
-generated user interaction with its view.  Consider again the name UI
+generated by user interaction with its view.  Consider again the name UI
 component: The name should probably not be empty, and thus the
 ``Submit'' should be deactivated as long as the text field is empty.
-Thus, the text-field component must, pass a message upwards to its
-enclosing name component informing it of the state change.
+Thus, the text-field component must pass a message upwards to its
+enclosing name component, informing it of the state change.
 Correspondingly, the enclosing component must be able to handle the
 message coming up from its sub-component.
 
@@ -899,12 +908,12 @@ along the way from its producer to its handler.
 
 FIXME: Temperature example?
 
-As a response to challenges described in the previous section, we we
+As a response to challenges described in the previous section, we
 started in 2014 to work on our own UI toolkit for ClojureScript,
-\textit{Reacl}~\cite{Reacl}.  This section describes how it tackles
+\textit{Reacl}~\cite{Reacl}.  This section describes how Reacl tackles
 the modularity challenges, using the phonebook example.  Reacl evolved
 significantly over its lifetime, eventually leading to its successor
-reacl-c described in Section~\ref{sec:reacl-c}.  We describe version 2
+reacl-c described in Section~\ref{sec:reacl-c}.  We describe Reacl version 2
 from about 2019.
 
 The phonebook example starts with a namespace declaration that imports
@@ -916,7 +925,8 @@ explicit in Clojure(Script):
 (ns examples.phonebook.core
   (:require [reacl2.core :as reacl :include-macros true]
             [reacl2.dom :as dom :include-macros true]
-            [active.data.record :include-macros true :as record
+            [active.data.record :include-macros true
+             :as record
              :refer-macros (def-record)]
             [active.data.realm :as realm]))
 \end{verbatim}
@@ -954,13 +964,16 @@ text-field components are rendered and behave:
               (fn [e]
                 (reacl/send-message!
                  this
-                 (change-text change-text-text (.. e -target -value))))
+                 (change-text
+                   change-text-text
+                   (.. e -target -value))))
               :value text})
   handle-message
   (fn [msg]
     (cond
       (record/is-a? change-text msg)
-      (reacl/return :app-state (change-text-text msg)))))
+      (reacl/return
+        :app-state (change-text-text msg)))))
 \end{verbatim}
 %
 In this declaration, \texttt{this} is the name that the code can use
@@ -972,7 +985,7 @@ Two clauses follow, the first of which is \texttt{render}, which
 generates the view from the app state \texttt{text}.  This is
 straightforward HTML with a callback attached that fires whenever the
 user changes the text.  In that case, the callback sends a
-\textit{message} to the component that describes the user's intention,
+message to the component that describes the user's intention,
 in this case to change the text in the form of a \texttt{change-text}
 record.
 
@@ -981,7 +994,7 @@ typical to send them ``to themselves,'' as is shown here.  The
 \texttt{handle-message} clause defines how a component reacts to a
 message it receives.  In this case, the only possible message is a
 \texttt{change-text} record, but often components allow for more than
-one kind of interaction, which is why there is \texttt{cond} here that
+one kind of interaction, which is why there is a \texttt{cond} here that
 identifies the \texttt{change-text} record.  The function then calls
 \texttt{reacl/return}, which constructs a value that tells Reacl what
 to do---in this case replace the app state of the component with the
@@ -1023,11 +1036,13 @@ creation of the component is \texttt{name}.  Here is the
                 (.preventDefault e)
                 (reacl/send-message! this (submit)))}
    (dom/div (text-field
-             (reacl/opt :reaction
-                        (reacl/reaction
-                         this
-                         (fn [text]
-                           (change-name change-name-text text))))
+             (reacl/opt
+               :reaction
+               (reacl/reaction
+                 this
+                 (fn [text]
+                   (change-name
+                     change-name-text text))))
              current-name)
             (dom/button "Submit")))
 \end{verbatim}
@@ -1064,7 +1079,8 @@ app state for \texttt{submit}:
   (fn [msg]
     (cond
       (record/is-a? change-name msg)
-      (reacl/return :local-state (change-name-text msg))
+      (reacl/return
+        :local-state (change-name-text msg))
 
       (record/is-a? submit msg)
       (reacl/return :app-state current-name))))
@@ -1076,7 +1092,7 @@ in Section~\ref{sec:modularity-challenges}:
 \begin{description}
 \item[Global Model State Update] Each \texttt{handle-message} function
   only describes how to update its own model/app state, with no
-  knowledge and therefore coupling to the global state of the
+  knowledge of and therefore no coupling to the global state of the
   application.
 \item[UI-Local State] The \texttt{local-state} mechanism keeps local
   state out of the model.
@@ -1085,7 +1101,8 @@ in Section~\ref{sec:modularity-challenges}:
 \end{description}
 %
 It should be noted that Reacl also has a mechanism not described here
-for side effects external to the UI application, such as network
+for side effects external to the UI component and global side effects,
+such as network
 communication.  In order to make the core of the UI application pure,
 it creates an \textit{action}, which is similar to a message with the
 difference that it does not specify a receiver but gets propagated
