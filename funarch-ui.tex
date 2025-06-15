@@ -1524,7 +1524,16 @@ now simply calls the right function from the view model.
 \section{Conclusion}
 \label{sec:conclusion}
 
-FIXME
+UI programming and the architecture of UI program have evolved
+significantly since the MVC pattern, even though the basic tenets of
+MVC are still in place.  Object-oriented and functional approaches
+have had complementary trade-offs: Pure MVC featured good modularity
+from the start, but has struggled with keeping model and view in sync.
+Conversely, the functional Model-View-Update pattern in its pure form
+solves the sync problem but struggles with modularity.  We have
+described the Reacl and reacl-c UI toolkits that address the
+modularity issues with Model-View-Update, and how combine
+Model-View-Update with view models to further modularize UI program.
 
 %%
 %% The next two lines define the bibliography style to be used, and
