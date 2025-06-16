@@ -37,7 +37,7 @@
    "Tel:"
    (c/focus entry-phone-number input-item)))
 
-#_(defn phone-book-item []
+#_(defn phonebook-item []
   ;; model: sequence-of entry
   (c/dynamic
    (fn [entries]
@@ -62,16 +62,16 @@
            (range
             (count xs)))))))
 
-(def phone-book-item
+(def phonebook-item
   (map-item entry-item))
 
-(def phone-book-with-add-button-item
+(def phonebook-with-add-button-item
   (dom/div
-   phone-book-item
+   phonebook-item
    (dom/button
     {:onClick
-     (fn [phone-book _]
-       (concat phone-book
+     (fn [phonebook _]
+       (concat phonebook
                [empty-entry]))}
     "Add new")))
 
@@ -81,7 +81,7 @@
   [entry-vm-entry :- entry
    entry-vm-emphasized? :- realm/boolean])
 
-(def empty-phone-book [])
+(def empty-phonebook [])
 
 (defn deemphasize [entry]
   (entry-vm-emphasized? entry false))
@@ -107,12 +107,12 @@
       (c/focus entry-vm-entry
                entry-item)))))
 
-(def phone-book-item-2
+(def phonebook-item-2
   (map-item entry-item-2))
 
-(def phone-book-with-add-button-item-2
+(def phonebook-with-add-button-item-2
   (dom/div
-   phone-book-item-2
+   phonebook-item-2
    (dom/button
     {:onClick add-new-entry}
     "Add new")))
@@ -124,7 +124,7 @@
    []
    (dom/div
     (c/dynamic pr-str)
-    phone-book-with-add-button-item-2)))
+    phonebook-with-add-button-item-2)))
 
 (defn ^:dev/after-load start []
   (println "start")
