@@ -16,7 +16,7 @@
   (entry entry-name ""
          entry-phone-number ""))
 
-(def input-item
+(def text-field
   (c/dynamic
    (fn [text]
     (dom/input
@@ -28,7 +28,7 @@
          (.-value
           (.-target event))))}))))
 
-(def input-item-with-submit-button
+(def text-editor
   (c/dynamic
    (fn [text]
      (c/local-state
@@ -39,7 +39,7 @@
                     (c/return :state [current-text current-text]))}
        (c/focus
         lens/second
-        input-item)
+        text-field)
        (dom/button
         {:type "submit"}
         "Submit"))))))
@@ -48,9 +48,9 @@
   ;; model: entry
   (dom/div
    "Name:"
-   (c/focus entry-name input-item-with-submit-button)
+   (c/focus entry-name text-editor)
    "Tel:"
-   (c/focus entry-phone-number input-item)))
+   (c/focus entry-phone-number text-field)))
 
 #_(defn phonebook-item []
   ;; model: sequence-of entry
