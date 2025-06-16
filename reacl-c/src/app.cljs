@@ -9,8 +9,7 @@
 
 ; Model
 (def-record entry
-  [entry-id :- realm/integer
-   entry-name :- realm/string
+  [entry-name :- realm/string
    entry-phone-number :- realm/string])
 
 (def empty-entry
