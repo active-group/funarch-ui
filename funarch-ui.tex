@@ -868,7 +868,7 @@ breaking up global dispatch.
 
 We will illustrate these facets using a simple example: Imagine an
 application that manages phone-book entries with name and phone
-number.  The application manages the phone book in a functional
+number.  The application manages the phonebook in a functional
 manner, as a functional list of immutable entry records.  Its UI
 contains a sub-view component that allows viewing and editing a single
 name within a text field, along with a ``Submit'' button for actually
@@ -946,13 +946,14 @@ both Reacl and the record library from \textit{Active
 explicit in Clojure(Script):
 %
 \begin{verbatim}
-(ns examples.phonebook.core
-  (:require [reacl2.core :as reacl :include-macros true]
-            [reacl2.dom :as dom :include-macros true]
-            [active.data.record :include-macros true
-             :as record
-             :refer-macros (def-record)]
-            [active.data.realm :as realm]))
+(ns phonebook
+  (:require
+    [reacl2.core :as reacl :include-macros true]
+    [reacl2.dom :as dom :include-macros true]
+    [active.data.record :include-macros true
+      :as record
+      :refer-macros (def-record)]
+    [active.data.realm :as realm]))
 \end{verbatim}
 %
 We use Active Data to declare a record type for an entry in the
@@ -1156,6 +1157,7 @@ your domain logic and compare the resulting graphical display
 the dynamic nature of UIs for a moment, this approach rarely results
 in good tests. Take this temparature display in pseudo-code:
 %
+FIXME: rewrite in Reacl
 \begin{verbatim}
   // a user interface
   let f temp
@@ -1195,14 +1197,15 @@ context plays an important role. A graphical representation that is
 perfectly emphatic when surrounded by white space appears too timid
 surrounded by loud advertisements.
 
-\cite{SPE} suggests a classification of software programs into classes
-\textit{S} -- ``programs whose function is formally defined by and
-derivable from a specification'' --, \textit{P} -- programs that have
+Lehman's SPE classification~\cite{SPE} distinguishes programs
+depending on how well specified and specifiable they are.
+\textit{S} is for ``programs whose function is formally defined by and
+derivable from a specification'', \textit{P} is for programs that have
 a formal specification, but ``the acceptability of a solution is
-determined by the environment in which it is embedded.''  --, and
-\textit{E} -- ``programs that mechanize a human or societal
-activity''. Classes \textit{P} and \textit{E} are further aggregated
-to form the class \textit{A} -- programs ``that represent a computer
+determined by the environment in which it is embedded,'' and
+\textit{E} is for ``programs that mechanize a human or societal
+activity.'' Classes \textit{P} and \textit{E} are further aggregated
+to form class \textit{A} -- programs ``that represent a computer
 application in the real world''. The distinction between \textit{S}
 and \textit{A} programs aligns with our distinction between software
 aspects that have a precise formal semantics and vague aspects like
@@ -1224,8 +1227,14 @@ logic. This function is independent of its context or any human habits
 or practices. It belongs to class \textit{S}, and is therefore
 amenable to automated tests and verification.
 
+This S/A separation also applies to Reacl's separation between a UI
+widget's event handler, the representation of the user's intention,
+and its dispatch in the \texttt{handle-message} function.  All fall
+squarely within A class, which makes the separation less valuable than
+it might seem from a purely architectural perspective.
+
 In order to bring down overall costs for tests, we have to strive for
-a surgically precise discernment of \textit{S} software parts and
+a surgically precise separation of \textit{S} software parts from
 \textit{A} software parts. In other words: We want to write as little
 UI code as possible. In the remainder of this work we propose a
 discipline that supports this goal: we introduce reacl-c, a UI
@@ -1245,14 +1254,10 @@ Reacl components that allowed for a more compositional programming
 style. This eventually led to the creation of the \textit{reacl-c}
 library.
 
-One aspect where reacl-c differs from Reacl is the point at which the
-library user has to make decisions about the relationship between a
-parent component's state and its child components' states. In Reacl,
-you have to decide about this relationship when you create a
-component, i.e. a new instance of a class. In the example above we
-create an instance of the \texttt{text-field} class. We have to decide
-then and there which component this text field's state relates to and
-how:
+The differences between Reacl and reacl-c focus on the relationship
+between components, and at what time the relationship is
+defined.  Consider the call to \texttt{text-field} in the
+phonebook example:
 %
 \begin{verbatim}
 (text-field
@@ -1263,17 +1268,22 @@ how:
  current-name)
 \end{verbatim}
 %
-If you want to defer this decision -- maybe because you want to use a
-component combinator that has to operate on state as well -- you have
-to write a function that takes the \texttt{reacl/opt} value and
-\texttt{current-name} as arguments and you have to build a combinator
-that works on these component constructor functions (instead of
-working on components). It turns out that uniform component
-constructors are almost always better suited to composition than class
-instances.
+The reaction is part of the \texttt{name-editor} \emph{class}, and
+thus effectively has to be the same for all components of that
+class---it's decided statically.
 
-Another pattern that emerged is that the relationship between parent
-and child is often best described by the concept of a lens\cite{Lenses}:
+A developer might want to defer the decision on the reaction until run time,
+maybe because you want to use a
+component combinator that has to operate on state as well.
+In that case, they have
+to write a function that takes the \texttt{reacl/opt} value and
+\texttt{current-name} as arguments and build a combinator
+that works on these component constructor functions (instead of
+working on components), which is awkwardly indirect.
+
+Another pattern that emerged from experience with Reacl
+is the relationship between parent
+and child, which is often best described by a lens\cite{Lenses}:
 A child component is often responsible for part of its parent's
 state. That means that the data flow from parent to child works like
 the \texttt{GET} operation of a suitable lens and the data flow from
@@ -1281,18 +1291,23 @@ child to parent corresponds to the \texttt{PUTBACK} operation.
 
 \subsection{User interface combinators}
 
-The ClojureScript library \textit{reacl-c} consists of a set of UI
-primitives -- \textit{items} -- and combinators thereof. For our
+The ClojureScript library \textit{reacl-c} does away with the
+separation between classes and their components.
+Instead, it offers a set of UI primitives and combinators for
+\textit{items}.  For our
 example we first import the three relevant namespaces from reacl-c
 along with the active.data namespaces. We build on the same domain
 model for phonebooks as described above.
 %
 \begin{verbatim}
-(ns example
-  (:require [reacl-c.core :as c :include-macros true]
-            [reacl-c.main :as main]
-            [reacl-c-.dom :as dom]
-            [active.data.record :as r :refer-macros [def-record]))
+(ns phonebook
+  (:require
+    [reacl-c.core :as c :include-macros true]
+    [reacl-c.dom :as dom :include-macros true]
+    [reacl-c.main :as cmain]
+    [active.clojure.lens :as lens]
+    [active.data.record :refer-macros [def-record]]
+    [active.data.realm :as realm]))
 \end{verbatim}
 %
 All reacl-c items have a notion of state (even though some of them
@@ -1311,7 +1326,7 @@ styled with a blue border.
  "Link!")
 \end{verbatim}
 %
-All items have state. You can access this state with the
+You can access an item's state with the
 \texttt{dynamic} item constructor, which takes a function that takes
 the current state as an argument and returns an item. The resulting
 item is the item returned from the function. You can ``set'' state
@@ -1344,23 +1359,23 @@ following item implements a simple text input:
           (.-target event))))}))))
 \end{verbatim}
 %
-In the \texttt{:onClick} handler we signal the intent to update the
-current state by returning a special \texttt{return} value. (You can
-also issue actions with \texttt{(c/return :action ...)} but we do not
-go into this feature here.)
+The \texttt{:onClick} handler signals the user's intent to update the
+current state by returning a special \texttt{return} value.  This
+happens directly, without a detour through a Reacl-style
+\texttt{handle-message} function.  (It is also possible to issue
+actions similarly to Reacl, but we do not go into this feature here.)
 
-Usually we use \texttt{isolate-state}, which completely detaches the
-state of items below from the state of items above, very seldomly --
-for many applications just once at the top level. Usually we use the
-item combinator \texttt{c/focus} to make a child item responsible for
-\textit{a part} of the current state. \texttt{focus} takes a lens --
-either a function of both arity one (\textit{GET}) and of arity two
-(\textit{PUTBACK}), a Clojure keyword, or a value from the
-\texttt{active.clojure.lens} library -- and a child item. Record field
+We use \texttt{isolate-state} rarely, which completely detaches the
+state of items below from the state of items above.
+For many applications, there is just one call at the top level.
+To achieve modularity, 
+the item combinator \texttt{c/focus} makes a child item responsible for
+\emph{a part} of the current state. The \texttt{focus} function
+takes a lens---and a child item. Record field
 names defined by \texttt{def-record} from \texttt{active.data.record}
 are also lenses in this sense so these record definitions integrate
 nicely with reacl-c. The following example shows a small UI that
-manages a single entry in our phone book application.
+manages a single entry in our phonebook application.
 %
 \begin{verbatim}
 (def entry-item
@@ -1372,13 +1387,13 @@ manages a single entry in our phone book application.
    (c/focus entry-phone-number input-item)))
 \end{verbatim}
 %
-\texttt{focus} makes for very powerful glue. We can go from this small
-item that manages a single phone book entry to an item that manages an
-entire phone book (a sequence of entries) just by using \texttt{focus}
+The \texttt{focus} function makes for very powerful glue. We can evolve this small
+item that manages a single phonebook entry to an item that manages an
+entire phonebook (a sequence of entries) just by using \texttt{focus}
 with a lens from \texttt{active.clojure.lens}:
 %
 \begin{verbatim}
-(def phone-book
+(def phonebook
   ;; model: sequence-of entry
   (c/dynamic
    (fn [entries]
@@ -1392,9 +1407,9 @@ with a lens from \texttt{active.clojure.lens}:
             (count entries)))))))
 \end{verbatim}
 %
-Here we map over the indices of the entries in the phone book and use
+Here we map over the indices of the entries in the phonebook and use
 \texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
-item for each phone book entry. This pattern is very common when
+item for each phonebook entry. This pattern is very common when
 dealing with lists. Since the code above only consists of regular
 lambda abstractions and referentially transparent expressions, we can
 distill this pattern into a custom combinator:
@@ -1412,7 +1427,7 @@ distill this pattern into a custom combinator:
            (range
             (count xs)))))))
 
-(def phone-book-2
+(def phonebook-2
   (map-item entry))
 \end{verbatim}
 %
@@ -1421,9 +1436,9 @@ not wired to any other UI widgets, so the \texttt{map-item} combinator
 can use \texttt{focus} to establish a connection between its state and
 \texttt{child-item}'s state.
 %
-For our rudimentary phone book application we also want to show a simple
+For our rudimentary phonebook application we also want to show a simple
 button with a label ``Add new'' that inserts a new entry into the
-phone book. This button can directly work with the entire phone book
+phonebook. This button can directly work with the entire phonebook
 state:
 %
 \begin{verbatim}
@@ -1431,14 +1446,14 @@ state:
   (entry entry-name ""
          entry-phone-number ""))
 
-(def phone-book-with-add-button
+(def phonebook-with-add-button
   (dom/div
-   phone-book-2
+   phonebook-2
    (dom/button
     {:onClick
-     (fn [phone-book _]
+     (fn [phonebook _]
        (c/return
-        (conj phone-book
+        (conj phonebook
               empty-entry)))}
     "Add new")))
 \end{verbatim}
@@ -1447,10 +1462,12 @@ Here we also use a shorthand notation. Instead of explicitly creating
 a \texttt{(c/return :state new-state)} value, you can just return
 \texttt{new-state}.
 
+FIXME: don't shorthand
+
 \subsection{The View Model -- functionally}
 
-In the phone book application above, when a user clicks the ``Add
-new'' button, we insert a new entry below the others. The user can
+In the phonebook application above, when a user clicks the ``Add
+new'' button, it application inserts a new entry below the others. The user can
 then click on the name input field and enter the new entry's name. The
 newly inserted widget looks like any other list item, however. In
 order to give the user explicit feedback as to what happened on
@@ -1469,12 +1486,12 @@ So far the domain model and the state of our items is the same. Now
 we also have to keep track of which entry to \texttt{emphasize}. We
 therefore separate our domain model from the model of our UI state. This
 pattern is well-known in the OO community, where it is referred to as
-the ``Model-View-ViewModel'' pattern (MVVM). Here we give a brief
+the ``Model-View-ViewModel'' pattern (MVVM)~\cite{MVVM}. Here we give a brief
 introduction of how to use view models functionally.
 
-Our view model includes a phone book entry from the core domain model,
+Our view model includes a phonebook entry from the core domain model,
 enriched with the information whether this particular entry should be
-emphasized. A phone book view model consists of a sequence of such
+emphasized. A phonebook view model consists of a sequence of such
 entries.
 %
 \begin{verbatim}
@@ -1487,13 +1504,13 @@ It probably doesn't make sense to have more than one \texttt{entry} with
 \texttt{entry-vm-emphasized?} set to \texttt{true}. There are many ways to
 ensure this constraint. Here we decide to provide a set of smart
 constructors and accessors that keep the constraint satisfied. First,
-we need the idea of an empty phone book:
+we need the idea of an empty phonebook:
 %
 \begin{verbatim}
-(def empty-phone-book [])
+(def empty-phonebook [])
 \end{verbatim}
 %
-In our minimal phone book example the only way to build larger phone
+In our minimal phonebook example the only way to build larger phone
 books is to use an \texttt{add-new-entry} function:
 %
 \begin{verbatim}
@@ -1528,17 +1545,17 @@ handles emphasis conditionally and then delegates on to the
       (c/focus entry-vm-entry
                entry-item)))))
 
-(def phone-book-item-2
+(def phonebook-item-2
   (map-item entry-item-2))
 \end{verbatim}
 %
-The phone book still needs an ``Add new'' button. This button
+The phonebook still needs an ``Add new'' button. This button
 now simply calls the right function from the view model.
 %
 \begin{verbatim}
-(def phone-book-with-add-button-item-2
+(def phonebook-with-add-button-item-2
   (dom/div
-   phone-book-item-2
+   phonebook-item-2
    (dom/button
     {:onClick add-new-entry}
     "Add new")))
@@ -1557,8 +1574,9 @@ respect to the view.
 Conversely, the functional Model-View-Update pattern in its pure form
 solves the sync problem but struggles with modularity.  We have
 described the Reacl and reacl-c UI toolkits that address the
-modularity issues with Model-View-Update, and how combine
-Model-View-Update with view models to further modularize UI program.
+modularity issues with Model-View-Update, and how enhance
+Model-View-Update with functional view models to further modularize UI
+program.
 
 %%
 %% The next two lines define the bibliography style to be used, and
