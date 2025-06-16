@@ -1453,16 +1453,11 @@ state:
     {:onClick
      (fn [phonebook _]
        (c/return
+        :state
         (conj phonebook
               empty-entry)))}
     "Add new")))
 \end{verbatim}
-%
-Here we also use a shorthand notation. Instead of explicitly creating
-a \texttt{(c/return :state new-state)} value, you can just return
-\texttt{new-state}.
-
-FIXME: don't shorthand
 
 \subsection{The View Model -- functionally}
 
