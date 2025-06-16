@@ -735,8 +735,14 @@ update : Msg -> Model -> (Model, Cmd Msg)
 %
 \begin{figure}
   \centering
-  \includegraphics[width=\columnwidth]{model-view-update}
+  \includegraphics[width=0.9\columnwidth]{model-view-update}
   \caption{The Model-View-Update pattern}
+  \Description{A diagram illustrating the flow in the
+    Model-View-Update pattern: On the left is the program, on the
+    right the user at the computer.  An arrow labeled ``view'' goes
+    from the program to the computer, also labeled to carry HTML.
+    Another arrow labeled ``update'' goes in the opposite direction,
+    labeled to carry \texttt{Msg}.}
   \label{fig:mvu}
 \end{figure}
 %
