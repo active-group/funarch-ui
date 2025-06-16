@@ -28,11 +28,27 @@
          (.-value
           (.-target event))))}))))
 
+(def input-item-with-submit-button
+  (c/dynamic
+   (fn [text]
+     (c/local-state
+      text
+      (dom/form
+       {:onSubmit (fn [[outer-text current-text] event]
+                    (.preventDefault event)
+                    (c/return :state [current-text current-text]))}
+       (c/focus
+        lens/second
+        input-item)
+       (dom/button
+        {:type "submit"}
+        "Submit"))))))
+
 (def entry-item
   ;; model: entry
   (dom/div
    "Name:"
-   (c/focus entry-name input-item)
+   (c/focus entry-name input-item-with-submit-button)
    "Tel:"
    (c/focus entry-phone-number input-item)))
 
