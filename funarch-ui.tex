@@ -77,8 +77,8 @@
 %% Of note is the shared affiliation of the first two authors, and the
 %% "authornote" and "authornotemark" commands
 %% used to denote shared contribution to the research.
-\author{Markus Schlegel}
-\email{markus.schlegel@active-group.de}
+\author{Michael Sperber}
+\email{michael.sperber@active-group.de}
 \affiliation{%
   \institution{Active Group GmbH}
   \streetaddress{Hechinger Straße 12/1}
@@ -87,8 +87,8 @@
   \postcode{72072}
 }
 
-\author{Michael Sperber}
-\email{michael.sperber@active-group.de}
+\author{Markus Schlegel}
+\email{markus.schlegel@active-group.de}
 \affiliation{%
   \institution{Active Group GmbH}
   \streetaddress{Hechinger Straße 12/1}
@@ -302,7 +302,7 @@ software architects:
 \label{sec:challenges}
 %
 \begin{enumerate}
-\item Keeping the view current with respect for the model involves two
+\item Keeping the view current with respect to the model involves two
   tasks: initially \emph{constructing} the view by creating the
   various UI widgets, and later \emph{mutating} the view upon calls to
   \texttt{update:}  Conceptually, the result of mutating the view
@@ -754,7 +754,7 @@ interactions.)
 The View-Model-Update model is extraordinarily simple and easy to
 learn, as it does not require the developer to know any higher-level
 abstractions like signals, stream transformers or monads.  It also
-completely avoids the circular dependency between view and model.
+avoids the circular dependency between view and model.
 
 The idea of Model-View-Update is quite similar to that of Racket's
 Universe teachpack: The view is re-constructed after every user
@@ -810,10 +810,34 @@ powerful enough to enable even complex applications.  Consequently, we
 take Model-View-Update as the starting point for the further
 discussion of this paper.
 
-% FIXME: Redux?
+% FIXME: Redux?  Reducers?
 
 \section{UI Toolkits Elsewhere}
 \label{sec:ui-toolkits-elsewhere}
+
+Evolution did not just happen in functional approaches to UI
+programming.  Object-oriented UI toolkits have also evolved,
+specifically those for web applications.  Modern OO toolkits like
+Angular, Svelte, and Vue.js have also attempted to solve challenge~\#1
+from Section~\ref{sec:challenges} using a common approach (also
+available with React).
+
+These toolkits rely on the same underlying architecture as the
+original MVC pattern and require the program to construct the UI
+initially and update specific parts of the UI corresponding to
+specific changes in the model.  This way, the avoid the overhead of
+Model-View-Update from (conceptually) re-constructing the UI on every
+change.
+
+However, instead of requiring the programmer to implement the update
+logic manually, these toolkits feature a pre-processor of the
+construction source code that generates the update code automatically.
+This convenience comes at a price, however, as these tookits require
+the code changing the state to be exposed to the UI toolkit, and for
+that code to use conventions recognizable to this pre-processor.  This
+means that the model cannot be implemented independently of the UI
+toolkit, and is thus coupled to the view---effectively giving up the
+Model/View separation, the central tenet of MVC.
 
 \section{Functional Modularity Challenges}
 \label{sec:modularity-challenges}
@@ -1249,7 +1273,7 @@ constructors are almost always better suited to composition than class
 instances.
 
 Another pattern that emerged is that the relationship between parent
-and child is often best described by the concept of a lens\cite{lens}:
+and child is often best described by the concept of a lens\cite{Lenses}:
 A child component is often responsible for part of its parent's
 state. That means that the data flow from parent to child works like
 the \texttt{GET} operation of a suitable lens and the data flow from
@@ -1524,7 +1548,17 @@ now simply calls the right function from the view model.
 \section{Conclusion}
 \label{sec:conclusion}
 
-FIXME
+UI programming and the architecture of UI program have evolved
+significantly since the MVC pattern, even though the basic tenets of
+MVC are still in place.  Object-oriented and functional approaches
+have had complementary trade-offs: Pure MVC featured good modularity
+from the start, but has struggled with keeping the view current with
+respect to the view.
+Conversely, the functional Model-View-Update pattern in its pure form
+solves the sync problem but struggles with modularity.  We have
+described the Reacl and reacl-c UI toolkits that address the
+modularity issues with Model-View-Update, and how combine
+Model-View-Update with view models to further modularize UI program.
 
 %%
 %% The next two lines define the bibliography style to be used, and
