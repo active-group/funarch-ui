@@ -193,7 +193,7 @@ object-oriented toolkits for comparison.  The Model-View-Update
 pattern still struggles with modularity issues described in
 Section~\ref{sec:modularity-challenges}.  Section~\ref{sec:reacl}
 describes the Reacl toolkit, designed to tackle these issues at a
-technical level.  Section~\ref{sec:persistent-pains} explains why UI
+technical level.  Section~\ref{sec:vague-semantics} explains why UI
 programming remains a struggle despite all the technical progress, and
 Section~\ref{sec:reacl-c} describes the architectural approach that we
 have developed to deal with it.  Section~\ref{sec:conclusion} concludes.
@@ -1138,16 +1138,13 @@ upwards in the tree formed by the components until a component either
 handles it or transforms it into an action understood further up.
 This achieves modularity for actions in a way similar to reactions.
 
-\section{Persistent Pains}
-\label{sec:persistent-pains}
+\section{Inherently Vague Semantics}
+\label{sec:vague-semantics}
 
 User interface construction remains a struggle. In addition to
 challenges described above, UI programming -- and testing -- is
 considered difficult for reasons that are beyond the grasp of UI
 tools.
-
-\subsection{Inherently Vague Semantics}
-\label{sec:vague-semantics}
 
 Many functional user interface frameworks and libraries claim that
 they allow users to describe their UI as a pure function from state
