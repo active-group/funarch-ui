@@ -1292,10 +1292,139 @@ child to parent corresponds to the \texttt{PUTBACK} operation.
 
 \subsection{User-Interface Combinators}
 
-For our
-example, we first import the three relevant namespaces from reacl-c
-along with the \texttt{active.data} namespaces. We build on the same domain
-model for phonebooks as described above.
+reacl-c is a ClojureScript combinator library of modular UI widgets.
+Just like its predecessors Elm and Reacl, reacl-c deals with updates
+by logically recomputing the display upon every change of the
+underlying data. Similarly, there are no circular callbacks.
+
+Even though ClojureScript is not statically typed, we can still
+illustrate the API of reacl-c in terms of an imaginary Haskellian type
+system. The unit of composition in reacl-c is called
+\textit{item}. All reacl-c items have a notion of state, items may
+have a visual appearance, items may issue actions and messages, and
+items may perform controlled effects.  For this overview it suffices
+to focus on visuals and state. As of now reacl-c is tailored to web
+GUIs, so visuals are always of the DOM type. An item can therefore be
+described by the type \texttt{Item state}, where \texttt{state} is the
+type of the item's state.
+
+Strings are primitive, state-agnostic items that simply display as
+themselves:
+%
+\begin{verbatim}
+"Hello" : forall s. Item s
+\end{verbatim}
+%
+
+DOM combinators such as \texttt{div} combine the visual appearance of multiple items into
+one and allow to add additional styling. Given an item \texttt{i :
+  Item s} and an item \texttt{j : Item s} that both work on the same
+type of state, the new item
+%
+\begin{verbatim}
+(div
+ {:style
+  {:border "1px solid blue"}}
+ i j) : Item s
+\end{verbatim}
+%
+displays \texttt{i} and \texttt{j}
+side-by-side (or on top of each other, depending on circumstances
+outside of the scope of this discussion) and draws a single blue
+border around them. Optionally, these DOM combinators take special
+arguments that allow users to update state. The item
+%
+\begin{verbatim}
+(button
+ {:onClick (fn [x] (+ x 1))}
+ "Inc") : Item Int
+\end{verbatim}
+%
+displays a button with the label
+``Inc'' that increments its state when the user clicks. The handler
+function \texttt{(fn [x] (+ x 1))} for the \texttt{:onClick} argument takes the
+current state as its first argument and returns a new state value for
+the next logical UI cycle. \texttt{focus} is an item combinator that
+works on state. It takes an item that operates on state of type
+\texttt{s} and a lens between types \texttt{s} and \texttt{t} and
+returns a new item that operates on type \texttt{t}.  Given the
+increment button above as \texttt{incButton}, we can build a GUI for a
+tuple of two integers by combining the use of \texttt{focus} and
+\texttt{div}:
+%
+\begin{verbatim}
+(div
+ (focus lens/first incBut)
+ (focus lens/second incBut))
+ : Item (Int, Int)
+\end{verbatim}
+%
+All items above only update
+state but never display it. That's where
+%
+\begin{verbatim}
+dynamic : forall s.
+         (s -> Item s)
+          -> Item s
+\end{verbatim}
+%
+comes into play.  The item constructor \texttt{dynamic} takes a
+function that gets the current state of type \texttt{s} as an argument
+and has to produce an item with that same state type. We can use
+\texttt{dynamic} to build an increment button that displays the
+current value as its label:
+%
+\begin{verbatim}
+(c/dynamic
+ (fn [i]
+  (button
+   {:onClick (fn [x] (+ x 1)}
+   (str i))))}.
+\end{verbatim}
+%
+The item combinator
+%
+\begin{verbatim}
+isolate-state : forall s t.
+                t
+                -> Item t
+                -> Item s
+\end{verbatim}
+%
+takes an initial value of type \texttt{t} and an item of
+type \texttt{Item t} and ``runs'' the item with the given initial
+state value. The resulting item can be used in any state context. This
+is a way to completely detach an item's state from its surrounding
+state.
+
+A less drastic combinator is
+%
+\begin{verbatim}
+local-state : forall s t.
+              t
+              -> Item (s, t)
+              -> Item s
+\end{verbatim}
+%
+which takes an initial value of type \texttt{t} and an item that
+operates on state of type \texttt{(s, t)}. The result is an item that
+operates on state of type \texttt{s}. When viewed from the perspective
+of the parent item \texttt{local-state} introduces the right part of
+the state tuple to form the child's state. When viewed from the
+perspective of the child item \texttt{local-state} hides the right
+part of the state tuple from the parent.
+
+These combinators (along with a handful of others) allow developers to
+build highly modular systems, which enables programming techniques
+from pure functional programming to be carried over to GUI
+construction.
+
+\subsection{Phonebooks redux}
+
+To further illustrate reacl-c we build on the same domain model for
+phonebooks as described in section~\ref{sec:reacl-c}.  We first import
+the three relevant namespaces from reacl-c along with
+\texttt{active.data} and \texttt{active.clojure} namespaces.
 %
 \begin{verbatim}
 (ns phonebook
@@ -1308,39 +1437,9 @@ model for phonebooks as described above.
     [active.data.realm :as realm]))
 \end{verbatim}
 %
-All reacl-c items have a notion of state (even though some of them
-ignore it), items may have a visual appearance, items may issue
-actions, and items may perform effects. Strings are simple items that
-appear as themselves on screen, ignore their state, don't issue
-actions, and don't perform effects. The \texttt{reacl-c.dom}
-namespace provides a set of simple item combinators corresponding to
-the DOM elements. The following example displays an external link,
-styled with a blue border.
-%
-\begin{verbatim}
-(dom/a
- {:href "http://example.org"
-  :style {:border "1px solid blue"}
- "Link!")
-\end{verbatim}
-%
-A program can access an item's state with the
-\texttt{dynamic} item constructor, which takes a function that takes
-the current state as an argument and returns an item. A program can ``set'' state
-with the \texttt{isolate-state} item
-combinator. \texttt{isolate-state} takes an initial value for the
-state and an item. The resulting item is the given item exposed to the
-given state. The following item displays ``Hello World'':
-%
-\begin{verbatim}
-(c/isolate-state
- "Hello"
- (c/dynamic (fn [state]
-             (str state " World"))
-\end{verbatim}
-%
-Interactivity comes from event handlers attached to dom items. The
-following item implements a simple text input:
+For our phonebook GUI we need a simple text-field, which we can build
+with a combination of \texttt{dynamic}, \texttt{dom/input}, and some
+JavaScript interop.
 %
 \begin{verbatim}
 (def text-field
@@ -1350,10 +1449,8 @@ following item implements a simple text input:
      {:value text
       :onChange
       (fn [old-text event]
-        (c/return
-         :state
-         (.-value
-          (.-target event))))}))))
+        (.-value
+         (.-target event)))}))))
 \end{verbatim}
 %
 The \texttt{:onChange} handler signals the user's intent to update the
@@ -1361,9 +1458,14 @@ current state by returning a special \texttt{return} value.  This
 happens directly, without a detour through a Reacl-style
 \texttt{handle-message} function.  (It is also possible to issue
 actions similarly to Reacl, but we do not go into this feature here.)
+Here we see how reacl-c integrates with the native DOM bedrock of the
+browser: An \texttt{:onChange} handler takes a native DOM event object
+as an optional second parameter. We can obtain the desired result text
+via this object.
 
-Here is a text editor with a Submit button, similar to the Reacl
-version:
+We can build a text editor with a Submit button, similar to the Reacl
+version above with the help of \texttt{local-state}. Here we can reuse
+\texttt{text-field} unmodified.
 %
 \begin{verbatim}
 (def text-editor
@@ -1375,9 +1477,7 @@ version:
        {:onSubmit
          (fn [[outer-text current-text] event]
            (.preventDefault event)
-           (c/return
-             :state
-             [current-text current-text]))}
+           [current-text current-text])}
        (c/focus
         lens/second
         text-field)
@@ -1416,7 +1516,7 @@ manages a single entry in our phonebook application.
    (c/focus entry-phone-number text-field)))
 \end{verbatim}
 %
-The \texttt{focus} function makes for very powerful glue. We can evolve this small
+The \texttt{focus} combinator makes for very powerful glue. We can evolve this small
 item that manages a single phonebook entry to an item that manages an
 entire phonebook (a sequence of entries) just by using \texttt{focus}
 with a lens from \texttt{active.clojure.lens}:
@@ -1488,7 +1588,7 @@ state:
     "Add new")))
 \end{verbatim}
 
-\subsection{The View Model, Functionally}
+\section{The View Model, Functionally}
 
 In the phonebook application above, when a user clicks the ``Add
 new'' button, the application inserts a new entry below the others. The user can
