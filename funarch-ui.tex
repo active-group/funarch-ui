@@ -179,7 +179,7 @@ perspective.
 \paragraph{Overview} Section~\ref{sec:ui-and-architecture} summarizes
 the software-architectural concepts relevant for the discussion in
 this paper.  Section~\ref{sec:mvc} reviews the Model-View-Controller
-pattern, the starting the point for all modern UI toolkits.
+pattern, the starting point for all modern UI toolkits.
 Section~\ref{sec:event-loop} discusses the event loop, and
 implementation aspect of many UI toolkits, along with its
 architectural implications.  Section~\ref{sec:functional-ui} reviews
@@ -215,8 +215,8 @@ The job of a UI toolkit is to enable developers to create and maintain
 UI applications.  These dual requirements---fast creation and
 effective maintenance---tend to be in conflict.  Developing the initial version
 of a software system as quickly and cheaply as possible often produces
-code that is expensive to maintain.  
-Unfortunately, most the of the cost produced by a software system is in
+code that is expensive to maintain.  This is especially pernicious in
+practice, as most of the cost produced by a software system is in
 maintenance, not initial creation~\cite{GreenBook}.
 
 This phenomenon seems to be especially pronounced in GUI applications:
@@ -236,7 +236,7 @@ all but impossible to replace any of these parts of the system
 independently.  This \textit{coupling} between the UI, the domain
 logic, and the storage logic prevents piecewise migration to a
 supported environment, making a ``big-bang migration'' the only
-feasible path away from VB6.  Big-bang migration is usually ecomically
+feasible path away from VB6.  Big-bang migration is usually economically
 infeasible, and thus these projects are stuck.
 
 The problem of these VB6 projects and many other projects that run
@@ -311,9 +311,9 @@ software architects:
 \item To achieve modularity, architects should be able to split a large,
   complex view into loosely coupled subviews.  This raises the
   question of how big those subviews should be. Making them large and
-  correspondingly having them represent a largher chunk of the model
+  correspondingly having them represent a larger chunk of the model
   simplifies the change logic, as it requires fewer implementations of
-  \texttt{update} However it also increases coupling between model
+  \texttt{update:}, however it also increases coupling between model
   and view.  Moreover, it causes potential performance issues when the
   typical change is only to a small part of the model and only needs a
   small part of the view to change: In that case, \texttt{update}
@@ -859,7 +859,7 @@ Section~\ref{sec:challenges}:
   A functional Elm/React application essentially manages its model
   state as a single mutable reference at the top level, with
   everything below managed functionally.
-\item Movel-View-Update also solves challenge \#3, as the cyclic call
+\item Model-View-Update also solves challenge \#3, as the cyclic call
   chain is broken by the succession of models and updates
   presented to the UI toolkit.
 \end{enumerate}
@@ -1359,7 +1359,7 @@ following item implements a simple text input:
           (.-target event))))}))))
 \end{verbatim}
 %
-The \texttt{:onClick} handler signals the user's intent to update the
+The \texttt{:onChange} handler signals the user's intent to update the
 current state by returning a special \texttt{return} value.  This
 happens directly, without a detour through a Reacl-style
 \texttt{handle-message} function.  (It is also possible to issue
