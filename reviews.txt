@@ -1,0 +1,186 @@
+Review #3A
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept
+
+Reviewer expertise
+------------------
+2. Some familiarity
+
+Paper summary
+-------------
+The paper describes the experience of writing user interfaces with a few toolkits. It characterizes three challenges that concern user interface programming, and compares the approaches using those problems. Then goes into discussing a couple of GUI toolkits developed by the authors that come to address the identified challenges.
+
+My main take away is the collection of challenges to evaluate the GUI toolkits. The solutions proposed by the authors promise to be valuable, but they need to be contrasted a bit better still to make them easier to appreciate.
+
+Comments for authors
+--------------------
+The introduction says:
+
+"This paper examines the evolution of UI toolkits and the resulting application architecture since their inception from a functional perspective."
+
+This is true, but the paper devotes long sections at the end to present a design that overcomes the challenges identified in section 1. It is a disservice to the article to leave this insight buried in the technical sections. I'd go as far as to argue that this is the main contribution of the paper. Something missing here is a mention of any related work based on the same ideas, or whether these are a complete novelty.
+
+The earlier sections visit different paradigms for programming UIs, and the discussion is accessible and interesting.
+
+------
+
+Line 102
+
+It says: most the of the cost produced by
+
+Should say: most of the cost produced by
+
+------
+
+Line 191
+
+says: largher
+
+should say: larger
+
+The two paragraphs at the end of section 3 could use references to specific UI toolkits and projects that have to deal with such restrictions. When the last paragraph says "non-linear arrangement", I don't understand what the authors mean with the term.
+
+I could imagine a spaghetti of callbacks, but it is still fuzzy how that is generated because of the restriction on where UI calls are allowed. Probably a reference here would avoid having to develop longer explanations in the paper.
+------
+
+Line 574
+
+Says: the model state is a single value, and there is no simple way to split it—and the corresponding view elements—into sub-views while retaining a similarly simple API.
+
+Could say:
+the model state is a single value, and there is no simple way to split it—and the corresponding view elements—while retaining a similarly simple API.
+
+------
+
+I'm finding the numbering of the challenges a bit hard to remember. Maybe giving a name to a each challenge could make later recollection easier. Like the challenge of model update granularity, the challenge of value duplication, and the challenge of looping updates.
+
+------
+
+Line 639
+
+Where it says: ... Immutable properties that flow downward in the sub-view tree.
+
+The text is missing an example of what is meant. After pondering for a bit, I think "immutable property" means a constant value. In any case, the text could be more precise and explicit.
+
+------
+
+Line 662
+
+Where it says: Yet Model-View-Update is powerful enough to enable even complex applications. A discussion is missing on how Elm and React do better than Universe teachpack to scale. Elm is said to inherit the same tradeoff, so how is it better then?
+React is said to have some new concepts (subcomponents plus mutable and immutable state). How do these features allow applications to scale?
+
+------
+
+Line 706
+
+It says: Movel-View-Update
+
+Should say: Model-View-Update
+
+------
+
+Line 910
+
+It says: The .preventDefault call prevents the web form from causing a complete reset of the application upon submission.
+
+
+The meaning of "complete reset" is absent in the text, and rather surprising in the narrative. A toolkit reseting the application by default sounds as a peculiar notion. Perhaps, it has to do with the conceptual model of Reacl. I don't know if it is worth entering the details in the prose.
+
+------
+
+Line 1139
+
+It says: :onClick
+
+Maybe it should say: :onChange
+
+------
+
+Line 1256
+
+It says: it application
+
+It should say: the application
+
+------
+
+Section 11 only reveals the point that the authors want to make in the last paragraph. Most notably:
+* reacl-c has no separate update code, modular components, no circular callbacks.
+* it allows to define abstractly the notion of emphasis for the sake of testing
+
+The argumentation of how these goals are achieved is mixed with many clojure snippets which this reviewer is ill-prepared to understand (the reading becomes harder from section 9). I'm guessing it would be possible to have a more abstract discussion about how the application is split in a domain model, a view model, and GUI, and how these together with lens neatly address the problems. The clojure snippets can be retained for illustration, without being used as the main device to drive the discussion.
+
+------
+
+There are a few frameworks to do functional reactive programming. They may not deserve being discussed, but references would still allow to discern whether the authors group them all in the same bag when discussing FRP. This reviewer has in mind "Bridging the GUI gap with reactive values and relations" from Perez and Nilsson, and Yampa to mention some examples not in the bibliography.
+
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+Review #3B
+===========================================================================
+
+Overall merit
+-------------
+4. Accept
+
+Reviewer expertise
+------------------
+3. Knowledgeable
+
+Paper summary
+-------------
+This paper has two topics: the first 7 pages are about the discussion of GUI frameworks in functional programming languages, and the rest 6 pages are about Reacl and reacl-c, which are the GUI frameworks that the authors developed.
+
+The first half starts an introduction to UI frameworks, the MVC framework, and several notable frameworks in functional languages including eXene, Fudgets, Fruit, Haggis, the Racket Universe, Elm and React.  Then it discusses the challenges in those frameworks with respect to modularity.
+
+The second half discusses the design of Reacl and reacl-c.  It is given by presenting code fragments in those frameworks and discussion how the framework design is tackling the challenges.
+
+Comments for authors
+--------------------
+The topic of the paper is relevant to the workshop.  GUI framework design is one of the major components in software development for long time, and still actively sought for new solutions.  Reviewing existing functional GUI frameworks from an architectural perspective is useful, not only functional to the functional programming community, but also to a larger community who concerns software design and architecture.  Since GUI frameworks for web applications are taking many ideas from functional programming, the first half of the paper would serve as a good summary of the history, key ideas and differences in the existing frameworks.
+
+The second half of the paper is rather difficult to read.  This is partly because the original syntax of Realc and real-c.  Also, it is not easy to imagine behavior of the example code fragments to the reviewer, who has not known those frameworks before reviewing.  It was only possible to follow the high-level arguments.
+
+Overall, the paper is very interesting and would provoke good discussion at the workshop.
+
+# minor comments
+
+- l.122 "ecomically"
+- l.193 "... of update[.] However it ..."
+- l.408 "toolkits that implemented genuinely functional ideas"
+ 	I can only vaguely understand what "genuinely functional ideas" mean.  Are these ideas higher-order functions, pure-functionality, functional compositionality or something else?
+
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+Review #3C
+===========================================================================
+
+Overall merit
+-------------
+3. Weak accept
+
+Reviewer expertise
+------------------
+2. Some familiarity
+
+Paper summary
+-------------
+The paper contrasts programming approaches for various user interfaces, highlighting pain points in each and motivating how some recent approaches alleviate some of these pain points.
+
+Comments for authors
+--------------------
+After the abstract, there is some text, you want a section header there such as: introduction. This text and the abstract kind of portray what is to come as a survey but then the conclusion seems to position some recent tools in solving some classic issues and the paper seems to be doing the same (and highlighting some open issues). It would be good if the intro highlighted that and did not position this as a survey as it does not seem thorough enough to act as a survey (and doesn't need to be). Section 10 on persistent pains has only one subsection, is that the only persistent pain? A brief summary before the subsections of what's to come (throughout) and what the pains are for this particular section would be good.
+
+In terms of the talk, a gentler introduction to the area and visual display of pains and what each approach addresses would be good.
+
+Comment @A1 by Administrator
+---------------------------------------------------------------------------
+Please reduce the page count to 12 pages for the camera ready submission.
+
