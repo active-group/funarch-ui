@@ -1,20 +1,6 @@
 Review #3A
 ===========================================================================
 
-Overall merit
--------------
-3. Weak accept
-
-Reviewer expertise
-------------------
-2. Some familiarity
-
-Paper summary
--------------
-The paper describes the experience of writing user interfaces with a few toolkits. It characterizes three challenges that concern user interface programming, and compares the approaches using those problems. Then goes into discussing a couple of GUI toolkits developed by the authors that come to address the identified challenges.
-
-My main take away is the collection of challenges to evaluate the GUI toolkits. The solutions proposed by the authors promise to be valuable, but they need to be contrasted a bit better still to make them easier to appreciate.
-
 Comments for authors
 --------------------
 The introduction says:
@@ -23,23 +9,7 @@ The introduction says:
 
 This is true, but the paper devotes long sections at the end to present a design that overcomes the challenges identified in section 1. It is a disservice to the article to leave this insight buried in the technical sections. I'd go as far as to argue that this is the main contribution of the paper. Something missing here is a mention of any related work based on the same ideas, or whether these are a complete novelty.
 
-The earlier sections visit different paradigms for programming UIs, and the discussion is accessible and interesting.
-
 ------
-
-Line 102
-
-It says: most the of the cost produced by
-
-Should say: most of the cost produced by
-
-------
-
-Line 191
-
-says: largher
-
-should say: larger
 
 The two paragraphs at the end of section 3 could use references to specific UI toolkits and projects that have to deal with such restrictions. When the last paragraph says "non-linear arrangement", I don't understand what the authors mean with the term.
 
@@ -74,12 +44,6 @@ React is said to have some new concepts (subcomponents plus mutable and immutabl
 
 ------
 
-Line 706
-
-It says: Movel-View-Update
-
-Should say: Model-View-Update
-
 ------
 
 Line 910
@@ -88,22 +52,6 @@ It says: The .preventDefault call prevents the web form from causing a complete 
 
 
 The meaning of "complete reset" is absent in the text, and rather surprising in the narrative. A toolkit reseting the application by default sounds as a peculiar notion. Perhaps, it has to do with the conceptual model of Reacl. I don't know if it is worth entering the details in the prose.
-
-------
-
-Line 1139
-
-It says: :onClick
-
-Maybe it should say: :onChange
-
-------
-
-Line 1256
-
-It says: it application
-
-It should say: the application
 
 ------
 
@@ -117,41 +65,16 @@ The argumentation of how these goals are achieved is mixed with many clojure sni
 
 There are a few frameworks to do functional reactive programming. They may not deserve being discussed, but references would still allow to discern whether the authors group them all in the same bag when discussing FRP. This reviewer has in mind "Bridging the GUI gap with reactive values and relations" from Perez and Nilsson, and Yampa to mention some examples not in the bibliography.
 
-
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
 Review #3B
 ===========================================================================
 
-Overall merit
--------------
-4. Accept
-
-Reviewer expertise
-------------------
-3. Knowledgeable
-
-Paper summary
--------------
-This paper has two topics: the first 7 pages are about the discussion of GUI frameworks in functional programming languages, and the rest 6 pages are about Reacl and reacl-c, which are the GUI frameworks that the authors developed.
-
-The first half starts an introduction to UI frameworks, the MVC framework, and several notable frameworks in functional languages including eXene, Fudgets, Fruit, Haggis, the Racket Universe, Elm and React.  Then it discusses the challenges in those frameworks with respect to modularity.
-
-The second half discusses the design of Reacl and reacl-c.  It is given by presenting code fragments in those frameworks and discussion how the framework design is tackling the challenges.
-
-Comments for authors
---------------------
-The topic of the paper is relevant to the workshop.  GUI framework design is one of the major components in software development for long time, and still actively sought for new solutions.  Reviewing existing functional GUI frameworks from an architectural perspective is useful, not only functional to the functional programming community, but also to a larger community who concerns software design and architecture.  Since GUI frameworks for web applications are taking many ideas from functional programming, the first half of the paper would serve as a good summary of the history, key ideas and differences in the existing frameworks.
-
 The second half of the paper is rather difficult to read.  This is partly because the original syntax of Realc and real-c.  Also, it is not easy to imagine behavior of the example code fragments to the reviewer, who has not known those frameworks before reviewing.  It was only possible to follow the high-level arguments.
-
-Overall, the paper is very interesting and would provoke good discussion at the workshop.
 
 # minor comments
 
-- l.122 "ecomically"
-- l.193 "... of update[.] However it ..."
 - l.408 "toolkits that implemented genuinely functional ideas"
  	I can only vaguely understand what "genuinely functional ideas" mean.  Are these ideas higher-order functions, pure-functionality, functional compositionality or something else?
 
@@ -161,18 +84,6 @@ Overall, the paper is very interesting and would provoke good discussion at the 
 
 Review #3C
 ===========================================================================
-
-Overall merit
--------------
-3. Weak accept
-
-Reviewer expertise
-------------------
-2. Some familiarity
-
-Paper summary
--------------
-The paper contrasts programming approaches for various user interfaces, highlighting pain points in each and motivating how some recent approaches alleviate some of these pain points.
 
 Comments for authors
 --------------------
