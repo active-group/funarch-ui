@@ -1438,7 +1438,7 @@ the three relevant namespaces from reacl-c along with
 \end{verbatim}
 %
 For our phonebook GUI we need a simple text-field, which we can build
-with a combination of \texttt{dynamic}, \texttt{dom/input}, and some
+with a combination of \texttt{c/dynamic}, \texttt{dom/input}, and some
 JavaScript interop.
 %
 \begin{verbatim}
@@ -1453,15 +1453,11 @@ JavaScript interop.
          (.-target event)))}))))
 \end{verbatim}
 %
-The \texttt{:onChange} handler signals the user's intent to update the
-current state by returning a special \texttt{return} value.  This
-happens directly, without a detour through a Reacl-style
-\texttt{handle-message} function.  (It is also possible to issue
-actions similarly to Reacl, but we do not go into this feature here.)
-Here we see how reacl-c integrates with the native DOM bedrock of the
-browser: An \texttt{:onChange} handler takes a native DOM event object
-as an optional second parameter. We can obtain the desired result text
-via this object.
+As shown above the \texttt{:onChange} handler describes how to
+update the current state.  Here we see how reacl-c integrates with the
+native DOM bedrock of the browser: The \texttt{:onChange} handler
+takes a native DOM event object as an optional second parameter. We
+can obtain the desired result text via this object.
 
 We can build a text editor with a Submit button, similar to the Reacl
 version above with the help of \texttt{local-state}. Here we can reuse
@@ -1494,17 +1490,13 @@ call to \texttt{focus} that embeds \texttt{text-field} focusses the
 \texttt{text-field} component on that local state via the
 \texttt{second} lens.
 
-We use \texttt{isolate-state} rarely, which completely detaches the
-state of items below from the state of items above.
-For many applications, there is just one call at the top level.
-To achieve modularity, 
-the item combinator \texttt{focus} makes a child item responsible for
-\emph{a part} of the current state. The \texttt{focus} function
-takes a lens and a child item. Record field
-names defined by \texttt{def-record} from \texttt{active.data.record}
-are also lenses in this sense so these record definitions integrate
-nicely with reacl-c. The following example shows a small UI that
-manages a single entry in our phonebook application.
+Many relationships between different parts of GUI applications can be
+expressed as lenses, so the \texttt{focus} combinator makes for very
+powerful glue.  Record field names defined by \texttt{def-record} from
+\texttt{active.data.record} are also lenses in this sense so these
+record definitions integrate nicely with reacl-c. The following
+example shows a small UI that manages a single entry in our phonebook
+application.
 %
 \begin{verbatim}
 (def entry-item
@@ -1516,7 +1508,7 @@ manages a single entry in our phonebook application.
    (c/focus entry-phone-number text-field)))
 \end{verbatim}
 %
-The \texttt{focus} combinator makes for very powerful glue. We can evolve this small
+We can evolve this small
 item that manages a single phonebook entry to an item that manages an
 entire phonebook (a sequence of entries) just by using \texttt{focus}
 with a lens from \texttt{active.clojure.lens}:
@@ -1581,10 +1573,8 @@ state:
    (dom/button
     {:onClick
      (fn [phonebook _]
-       (c/return
-        :state
-        (conj phonebook
-              empty-entry)))}
+       (conj phonebook
+             empty-entry))}
     "Add new")))
 \end{verbatim}
 
