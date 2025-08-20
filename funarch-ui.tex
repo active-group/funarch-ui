@@ -1292,10 +1292,15 @@ child to parent corresponds to the \texttt{PUTBACK} operation.
 
 \subsection{User-Interface Combinators}
 
-reacl-c is a ClojureScript combinator library of modular UI widgets.
-Just like its predecessors Elm and Reacl, reacl-c deals with updates
-by logically recomputing the display upon every change of the
-underlying data. Similarly, there are no circular callbacks.
+reacl-c is a ClojureScript combinator library for modular UI widgets
+called ``items''.  Just like its predecessors Elm and Reacl, reacl-c
+deals with updates by logically recomputing the display upon every
+change of the underlying data. Similarly, there are no circular
+callbacks. State is kept local to each item. The relationship between
+two different items' state is expressed with lenses.  reacl-c's small
+set of flexible combinators allow developers to express abstractions
+that increase reuse and help to sharply delineate the distinction of S
+and A code.
 
 Even though ClojureScript is not statically typed, we use an imaginary
 Haskellian type system to illustrate the API of reacl-c. The unit of
