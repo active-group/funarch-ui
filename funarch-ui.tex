@@ -1297,16 +1297,15 @@ Just like its predecessors Elm and Reacl, reacl-c deals with updates
 by logically recomputing the display upon every change of the
 underlying data. Similarly, there are no circular callbacks.
 
-Even though ClojureScript is not statically typed, we can still
-illustrate the API of reacl-c in terms of an imaginary Haskellian type
-system. The unit of composition in reacl-c is called
-\textit{item}. All reacl-c items have a notion of state, items may
-have a visual appearance, items may issue actions and messages, and
-items may perform controlled effects.  For this overview it suffices
-to focus on visuals and state. As of now reacl-c is tailored to web
-GUIs, so visuals are always of the DOM type. An item can therefore be
-described by the type \texttt{Item state}, where \texttt{state} is the
-type of the item's state.
+Even though ClojureScript is not statically typed, we use an imaginary
+Haskellian type system to illustrate the API of reacl-c. The unit of
+composition in reacl-c is called \textit{item}. All reacl-c items have
+a notion of state, items may have a visual appearance, items may issue
+actions and messages, and items may perform controlled effects.  For
+this overview it suffices to focus on visuals and state. As of now
+reacl-c is tailored to web GUIs, so visuals are always of the DOM
+type. An item can therefore be described by the type \texttt{Item
+  state}, where \texttt{state} is the type of the item's state.
 
 Strings are primitive, state-agnostic items that simply display as
 themselves:
@@ -1340,17 +1339,18 @@ arguments that allow users to update state. The item
  "Inc") : Item Int
 \end{verbatim}
 %
-displays a button with the label
-``Inc'' that increments its state when the user clicks. The handler
-function \texttt{(fn [x] (+ x 1))} for the \texttt{:onClick} argument takes the
-current state as its first argument and returns a new state value for
-the next logical UI cycle. \texttt{focus} is an item combinator that
-works on state. It takes an item that operates on state of type
-\texttt{s} and a lens between types \texttt{s} and \texttt{t} and
-returns a new item that operates on type \texttt{t}.  Given the
-increment button above as \texttt{incButton}, we can build a GUI for a
-tuple of two integers by combining the use of \texttt{focus} and
-\texttt{div}:
+displays a button with the label ``Inc'' that increments its state
+when the user clicks. The handler function \texttt{(fn [x] (+ x 1))}
+for the \texttt{:onClick} argument takes the current state as its
+first argument and returns a new state value for the next logical UI
+cycle.
+
+\texttt{focus} is an item combinator that works on state. It takes an
+item that operates on state of type \texttt{s} and a lens between
+types \texttt{s} and \texttt{t} and returns a new item that operates
+on type \texttt{t}.  Given the increment button above as
+\texttt{incButton}, we can build a GUI for a tuple of two integers by
+combining the use of \texttt{focus} and \texttt{div}:
 %
 \begin{verbatim}
 (div
@@ -1364,7 +1364,7 @@ state but never display it. That's where
 %
 \begin{verbatim}
 dynamic : forall s.
-         (s -> Item s)
+          (s -> Item s)
           -> Item s
 \end{verbatim}
 %
@@ -1379,7 +1379,7 @@ current value as its label:
  (fn [i]
   (button
    {:onClick (fn [x] (+ x 1)}
-   (str i))))}.
+   (str i)))))
 \end{verbatim}
 %
 The item combinator
