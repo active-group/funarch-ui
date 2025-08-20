@@ -1646,10 +1646,10 @@ books is to use an \texttt{add-new-entry} function:
 testing: It is a pure function with precise semantics and a
 non-trivial implementation.
 
-These definitions along make up our view model. The corresponding
+These definitions make up our view model. The corresponding
 UI code is straightforward. The new entry item \texttt{entry-item-2}
 handles emphasis conditionally and then delegates on to the
-\texttt{entry-item}.
+\texttt{entry-item} defined above.
 %
 \begin{verbatim}
 (def entry-item-2
