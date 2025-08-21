@@ -1,5 +1,7 @@
 \documentclass[sigplan,review,screen]{acmart}
 
+\usepackage{tikz}
+
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -1494,7 +1496,21 @@ of the state rather than being bound to a separate variable.)  The
 call to \texttt{focus} that embeds \texttt{text-field} focusses the
 \texttt{text-field} component on that local state via the
 \texttt{second} lens.
+%
+\begin{center}
+\begin{tikzpicture}
 
+% Text field
+\draw (0,0) rectangle (5,0.6);
+\node[anchor=west] at (0.2,0.3) {John Doe};
+
+% Button
+\draw[fill=gray!10,rounded corners=3pt] (5.3,0) rectangle (7,0.6);
+\node at (6.15,0.3) {Submit};
+
+\end{tikzpicture}
+\end{center}
+%
 Many relationships between different parts of GUI applications can be
 expressed as lenses, so the \texttt{focus} combinator makes for very
 powerful glue.  Record field names defined by \texttt{def-record} from
@@ -1512,6 +1528,32 @@ application.
    "Tel:"
    (c/focus entry-phone-number text-editor)))
 \end{verbatim}
+%
+\begin{center}
+\begin{tikzpicture}
+
+% Text field
+\node[anchor=west] at (0.2,0.3) {Name:};
+\draw (1.4,0) rectangle (4.0,0.6);
+\node[anchor=west] at (1.6,0.3) {John Doe};
+
+% Button
+\draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+\node at (5.15,0.3) {Submit};
+
+\begin{scope}[yshift=-0.8cm]
+% Text field
+\node[anchor=west] at (0.2,0.3) {Tel:};
+\draw (1.4,0) rectangle (4.0,0.6);
+\node[anchor=west] at (1.6,0.3) {0123};
+
+% Button
+\draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+\node at (5.15,0.3) {Submit};
+\end{scope}
+
+\end{tikzpicture}
+\end{center}
 %
 We can evolve this small
 item that manages a single phonebook entry to an item that manages an
@@ -1535,7 +1577,9 @@ with a lens from \texttt{active.clojure.lens}:
 %
 Here we map over the indices of the entries in the phonebook and use
 \texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
-item for each phonebook entry. This pattern is very common when
+item for each phonebook entry.
+%
+This pattern is very common when
 dealing with lists. Since the code above only consists of regular
 lambda abstractions and referentially transparent expressions, we can
 distill this pattern into a custom combinator:
@@ -1564,8 +1608,7 @@ can use \texttt{focus} to establish a connection between its state and
 %
 For our rudimentary phonebook application we also want to show a simple
 button with a label ``Add new'' that inserts a new entry into the
-phonebook. This button can directly work with the entire phonebook
-state:
+phonebook.
 %
 \begin{verbatim}
 (def empty-entry
@@ -1582,6 +1625,62 @@ state:
              empty-entry))}
     "Add new")))
 \end{verbatim}
+%
+This button can directly work with the entire phonebook state.
+%
+\begin{center}
+\begin{tikzpicture}
+
+% Text field
+\node[anchor=west] at (0.2,0.3) {Name:};
+\draw (1.4,0) rectangle (4.0,0.6);
+\node[anchor=west] at (1.6,0.3) {John Doe};
+
+% Button
+\draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+\node at (5.15,0.3) {Submit};
+
+\begin{scope}[yshift=-0.8cm]
+  % Text field
+  \node[anchor=west] at (0.2,0.3) {Tel:};
+  \draw (1.4,0) rectangle (4.0,0.6);
+  \node[anchor=west] at (1.6,0.3) {0123};
+
+  % Button
+  \draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+  \node at (5.15,0.3) {Submit};
+\end{scope}
+
+\begin{scope}[yshift=-1.8cm]
+  % Text field
+  \node[anchor=west] at (0.2,0.3) {Name:};
+  \draw (1.4,0) rectangle (4.0,0.6);
+  \node[anchor=west] at (1.6,0.3) {Jane Doe};
+
+  % Button
+  \draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+  \node at (5.15,0.3) {Submit};
+
+  \begin{scope}[yshift=-0.8cm]
+    % Text field
+    \node[anchor=west] at (0.2,0.3) {Tel:};
+    \draw (1.4,0) rectangle (4.0,0.6);
+    \node[anchor=west] at (1.6,0.3) {4567};
+
+    % Button
+    \draw[fill=gray!10,rounded corners=3pt] (4.3,0) rectangle (6,0.6);
+    \node at (5.15,0.3) {Submit};
+  \end{scope}
+\end{scope}
+
+\begin{scope}[yshift=-3.6cm]
+    % Add new button
+    \draw[fill=gray!10,rounded corners=3pt] (0.3,0) rectangle (2.1,0.6);
+    \node at (1.2,0.3) {Add new};
+\end{scope}
+
+\end{tikzpicture}
+\end{center}
 
 \section{The View Model, Functionally}
 
