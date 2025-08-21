@@ -1459,11 +1459,13 @@ JavaScript interop.
          (.-target event)))}))))
 \end{verbatim}
 %
-As shown above the \texttt{:onChange} handler describes how to
-update the current state.  Here we see how reacl-c integrates with the
-native DOM bedrock of the browser: The \texttt{:onChange} handler
-takes a native DOM event object as an optional second parameter. We
-can obtain the desired result text via this object.
+As shown above the \texttt{:onChange} handler describes how to update
+the current state.  Here we see how reacl-c integrates with the native
+DOM bedrock of the browser: The \texttt{:onChange} handler takes a
+native DOM event object as an optional second
+parameter\footnote{Strictly speaking, since reacl-c uses React
+underneath, these event objects ara React wrappers around native DOM
+events}. We can obtain the desired result text via this object.
 
 We can build a text editor with a Submit button, similar to the Reacl
 version above with the help of \texttt{local-state}. Here we can reuse
