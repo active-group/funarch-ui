@@ -104,16 +104,16 @@
 %% article.
 \begin{abstract}
   Functional paradigms for user-interface (UI) programming have
-  undergone significant evolution over the years, from early
+  undergone significant evolution, from early
   stream-based approaches, monad-based toolkits mimicking OO practice
   to modern model-view-update frameworks.  Changing from the
-  inherently imperative classic Model-View-Controller pattern to
-  functional approaches has significant architectural impact,
-  drastically reducing coupling and improving maintainability and
+  classic Model-View-Controller pattern to
+  functional approaches 
+  drastically reduces coupling and improves maintainability and
   testability.  On the other hand, achieving good modularity with
   functional approaches is an ongoing challenge.  This paper traces
   the evolution of functional UI toolkits along with the architectural
-  implications of their designs (including two of our own), summarizes
+  implications of their designs---including two of our own---summarizes
   the current state of the art and discusses remaining issues.
 \end{abstract}
 
@@ -182,9 +182,8 @@ perspective.
 the software-architectural concepts relevant for the discussion in
 this paper.  Section~\ref{sec:mvc} reviews the Model-View-Controller
 pattern, the starting point for all modern UI toolkits.
-Section~\ref{sec:event-loop} discusses the event loop, and
-implementation aspect of many UI toolkits, along with its
-architectural implications.  Section~\ref{sec:functional-ui} reviews
+Section~\ref{sec:event-loop} discusses the event loop, an
+implementation aspect of many UI toolkits.  Section~\ref{sec:functional-ui} reviews
 early functional UI toolkits.  Section~\ref{sec:universe-teachpack}
 describes a transition point between these early toolkits and the
 toolkits of the modern era---Racket's Universe teachpack.
@@ -205,38 +204,35 @@ have developed to deal with it.  Section~\ref{sec:conclusion} concludes.
 \label{sec:ui-and-architecture}
 
 Starting with the \textit{Movel-View-Controller} pattern
-(MVC)~\cite{MVC} and its implementation in the 1970s, the software
+(MVC)~\cite{MVC} in the 1970s, the software
 industry and research community have produced a plethora of \textit{UI
   toolkits}, libraries that provide the conceptual elements of a
 UI---text, input fields, buttons, lists, menus, grids and more---as
 objects to be created and manipulated by the program, and henceforth
 called \textit{widgets}.  Each toolkit dictates or at least
-constraints the organization of the applications that use them.
+constrains the organization of the applications that use them.
 
 The job of a UI toolkit is to enable developers to create and maintain
 UI applications.  These dual requirements---fast creation and
-effective maintenance---tend to be in conflict.  Developing the initial version
-of a software system as quickly and cheaply as possible often produces
-code that is expensive to maintain.  This is especially pernicious in
+effective long-term maintenance---tend to be in conflict.  This is especially pernicious in
 practice, as most of the cost produced by a software system is in
 maintenance, not initial creation~\cite{GreenBook}.
 
 This phenomenon seems to be especially pronounced in GUI applications:
-The Visual Basic 6 (VB6) environment for building such
+The Visual Basic 6 (VB6) environment for building GUI
 applications~\cite{VB6} was optimized for fast initial creation, and
 as such one of the most successful such environments of all time.
 Microsoft relegated VB6 to ``legacy'' status in 2008. Despite this,
 many VB6 applications are still around at the time of writing, even
-though their further development is painful and costly and their
+though their further development is painful and costly, and their
 maintainers understand the importance of moving away from an
 unsupported platform.
 
 Moving away from VB6 is so difficult because a VB6 application
 typically combines UI-related code, domain logic, and possible
-interactions with a database and storage in the same function, making it
+interactions with a database in the same function, making it
 all but impossible to replace any of these parts of the system
-independently.  This \textit{coupling} between the UI, the domain
-logic, and the storage logic prevents piecewise migration to a
+independently.  These dependencies prevent piecewise migration to a
 supported environment, making a ``big-bang migration'' the only
 feasible path away from VB6.  Big-bang migration is usually economically
 infeasible, and thus these projects are stuck.
@@ -244,7 +240,7 @@ infeasible, and thus these projects are stuck.
 The problem of these VB6 projects and many other projects that run
 into high maintenance costs is \textit{coupling}~\cite{GreenBook},
 dependencies between different conceptual building blocks of the
-software. Coupling dependencies cause changes in one place to be require changes in
+software. Coupling causes changes in one place to be require changes in
 other places.  Consequently, the central concern of software
 architecture is to enable effective long-term maintenance by keeping
 coupling down.  A software project can control coupling through its
@@ -253,23 +249,7 @@ project into building blocks and maintaining strong boundaries between
 them by establishing explicit interfaces.
 
 The shared concern of UI applications is to establish modularity
-between the UI code and the domain logic.  Reenskaug's goal with the
-MVC pattern was to enable a particular kind of change---changing or
-replacing the UI without changing the domain logic, even having
-multiple UIs without the rest of the application being affected.  To
-that end, the central innovation of MVC was the decoupling of UI code
-(``view'') from the domain logic (``model'').
-
-The decoupling between view and model also has other practical
-implications for developers who want to implement automatic tests for
-as much of their code as possible.  With environments that strongly
-couple view and model, such as VB6, applications are difficult to
-test, because the only way of invoking domain functionality is via the
-UI, which is intended for human operators.  Often, the only resort in
-these cases is to simulate an operator programmatically, which is
-expensive and brittle.
-
-For the rest of this paper, we will examine UI toolkits and paradigms
+between the UI code and the domain logic.  For the rest of this paper, we will examine UI toolkits and paradigms
 with respect to these tenets of software architecture: How do they
 impact coupling, modularity, and thus maintainability?  
 
@@ -280,13 +260,19 @@ impact coupling, modularity, and thus maintainability?
   
 % http://bildungsgueter.de/Smalltalk/Pages/MVCTutorial/Pages/FS0004.htm
 
-MVC is the ancestor of most contemporary UI
-paradigms and frameworks.  The separation of the model from the view
-is universally beneficial from an architectural standpoint.
-Developers can change the UI and replace the UI toolkit without
-changing the model.  Moreover, since the model can function without
-the UI, testing automation is significantly easier compared to a
-tightly coupled view.
+MVC is the ancestor of most contemporary UI paradigms and frameworks.
+The original goal of this pattern was to enable a particular kind of
+change---changing or replacing the UI without changing the domain
+logic.  To that end, the central innovation of MVC was the decoupling
+of UI code (``view'') from the domain logic (``model'').
+
+The decoupling between view and model also has other practical
+implications, such as for automatic tests.  With environments that
+strongly couple view and model, such as VB6, applications are
+difficult to test, because the only way of invoking domain
+functionality is via the UI, which is intended for human operators.
+Often, the only resort in these cases is to simulate an operator
+programmatically, which is expensive and brittle.
 
 MVC programs need to keep the view current when the state of the model
 changes.  To that end, models typically implement a variation of the
@@ -307,7 +293,7 @@ software architects:
 \item Keeping the view current with respect to the model involves two
   tasks: initially \emph{constructing} the view by creating the
   various UI widgets, and later \emph{mutating} the view upon calls to
-  \texttt{update}  Conceptually, the result of updating the view
+  \texttt{update}.  Conceptually, the result of updating the view
   should be the same as re-constructing the view, but the concrete
   code for both is quite different, implementing the same logic twice.
 \item To achieve modularity, architects should be able to split a large,
@@ -315,7 +301,7 @@ software architects:
   question of how big those subviews should be. Making them large and
   correspondingly having them represent a larger chunk of the model
   simplifies the change logic, as it requires fewer implementations of
-  \texttt{update:}, however it also increases coupling between model
+  \texttt{update}, however it also increases coupling between model
   and view.  Moreover, it causes potential performance issues when the
   typical change is only to a small part of the model and only needs a
   small part of the view to change: In that case, \texttt{update}
@@ -328,21 +314,17 @@ software architects:
   changes to the model, causing a cyclic call chain.
 \end{enumerate}
 %
-Consider the following practical example:
-%
 % weather composite, air pressure, temperature controls
 
 \begin{figure}[tb]
 \begin{verbatim}
 class Weather(field pressure: Pressure,
-              field temperature: Temperature) {
-  ...
-}
+              field temperature: Temperature)
+{ ... }
 
 interface Observer {
   method update(info)
 }
-
 class Model {
   var observers: List Observer
 
@@ -354,7 +336,6 @@ class Model {
     observers += observer
   }
 }
-
 class Pressure extends Model {
   var hPa: double
   method setHPa(newHPa: double) {
@@ -362,7 +343,6 @@ class Pressure extends Model {
     self.changed(newHPA)
   }
 }
-
 class Temperature extends Model {
   var kelvin: double
   method setKelvin(newKelvin: double) {
@@ -371,6 +351,7 @@ class Temperature extends Model {
   }
 }
 \end{verbatim}
+  \vspace*{-2ex}
   \caption{Model for weather data}
   \label{fig:weather-model}
 \end{figure}
@@ -378,8 +359,7 @@ class Temperature extends Model {
 \begin{figure}[tb]
 \begin{verbatim}
 class TemperatureView
-  (field temperatureModel: Temperature):
-{
+  (field temperatureModel: Temperature) {
   var textField =
     new TextField(toText(temperatureModel.kelvin)
         + "K")
@@ -390,10 +370,8 @@ class TemperatureView
     textField.setText(toText(newKelvin) + "K")
   }
 }
-
 class PressureView
-  (field pressureModel: Pressure)
-{
+  (field pressureModel: Pressure) {
   var textField =
     new TextField(toText(pressureModel.hPa) + "hPa")
 
@@ -403,7 +381,6 @@ class PressureView
     textField.setText(toText(newKelvin) + "hPa")
   }
 }
-
 class WeatherView(field weatherModel: Weather) {
   var temperatureView =
     new TemperatureView(weatherModel.temperature)
@@ -412,10 +389,12 @@ class WeatherView(field weatherModel: Weather) {
   ...
 }
 \end{verbatim}
+  \vspace*{-2ex}
   \caption{View for weather data}
   \label{fig:weather-view}
 \end{figure}
 %
+Consider the following practical example:
 Figure~\ref{fig:weather-model} shows object-oriented pseudcode for a
 weather model that contains air pressure and temperature, each with
 its own encapsulated state.  Figure~\ref{fig:weather-view} shows
@@ -476,6 +455,7 @@ class TemperatureView2
   })
 }
 \end{verbatim}
+  \vspace*{-2ex}
   %
   \caption{Two different sub-views on the same model}
   \label{fig:temperature-view2}
@@ -520,15 +500,13 @@ while (true) {
 }
 \end{verbatim}
 %
-For this to work in practice, the \textit{update} methods of the view
+For this to work, the \texttt{update} methods of the view
 subscribers must not block, as this would prevent further user
-interaction.  If an \textit{update} method needs to perform I/O or
+interaction.  If an \texttt{update} method needs to perform I/O or
 other blocking operations, this restriction effectively inverts the
 flow of control: The method must start the operation asynchronously
 and register it with the event loop, to be notified when the operation
-has completed.  This is often awkward---more so, when the event loop
-of a particular UI toolkit only supports a limited set of such
-operations, as is common.
+has completed, which is often awkward.
 
 In principle, UI programs could also just start threads that perform
 blocking operations synchronously, but interact with the UI
@@ -549,8 +527,8 @@ creating a style of programming colloquially known as \textit{callback
 
 This section briefly describes some early UI tookits for functional
 languages.  We focus on toolkits that implemented genuinely
-functional ideas.  Many other UI toolkits for functional languages
-basically provided bindings for underlying C/C++ libraries and thus
+functional ideas, and omit those that basically provided bindings for
+underlying C/C++ libraries and thus
 inherited its imperative MVC pattern.  We also omit UI toolkits that
 only cover certain kinds of applications, like Eros~\cite{Eros} which is
 for UIs that construct values.
@@ -564,9 +542,8 @@ uses Concurrent ML to solve the event-loop problem described in
 Section~\ref{sec:event-loop}.  In eXene, the global event loop is
 relegated to the background in favor of individual event loops running
 in threads, each associated with a particular UI widget.  Rather than calling
-subscriber methods directly, the event loop sends asynchronous
-messages to the widget event loops.  This decouples the control flow
-of the central event loop from that of its components.  Implementors
+subscriber methods directly, the global event loop sends asynchronous
+messages to the widget event loops, decoupling them.  Implementors
 of components are afforded great flexibility in orchestrating their
 actions through CML's event combinators.
 
@@ -584,8 +561,7 @@ was generally a challenge for the designers of Haskell during its
 nascency in the 1990s.  This also affects the designers of UI
 libraries who were motivated to specify UIs in terms of pure
 functions.  A notable early attempt to do this was the
-\textit{Fudgets} toolkit~\cite{Fudgets}.  (At the time of writing,
-Fudgets is still being maintained as a Haskell library.)
+\textit{Fudgets} toolkit~\cite{Fudgets}.  (Fudgets is still being maintained.)
 
 Fudgets represents a UI component (a \textit{fudget}) as a
 \textit{stream processor} of type \verb|F a b| that transforms a
@@ -618,10 +594,10 @@ differences between Fudget and Fruit, however:
   while Fruit requires them to be threaded explicitly through the
   program.  This means that a Fruit program is coupled to all aspects
   of the ``outside world'' it interacts with, making it difficult to
-  add interactions outside the UI (such as file or network I/O) after
+  add interactions (such as file or network I/O) after
   the fact.
-\item Another difference concerns dealing with dynamic UI components:
-  Whereas Fudget views by default display the values coming from a
+\item Another difference concerns dynamic UI components:
+  Whereas Fudget views display the values coming from a
   stream (and are thus ``outside'' those streams), Fruit has the views
   themselves be the values of the FRP signals, and dynamic structure
   can be expressed by just having new values return a different view.
@@ -663,7 +639,7 @@ view logic between initial construction and later update.  We focus
 here on the ``world'' part of the Universe teachpack, i.e.\ video
 games without distribution.  To implement such a video game, the
 developer only has to implement a small number of pure functions, all
-of which operate on a model called the ``world state,'' represented by
+of which operate on a model called the ``world state'', represented by
 a single value of type \texttt{WorldSt}, which is entirely under the
 control of the program:
 %
@@ -689,8 +665,8 @@ fast enough in practice to achieve reasonably fluid animation.
 The other functions provide reactivity to different kinds of events:
 All of them take a \texttt{WorldSt} state as input and output a new
 state, which the teachpack feeds into \texttt{on-draw}.
-\texttt{On-tick} is called on every clock tick to provide movement
-even when there is no user interaction.  \texttt{On-key} is called on
+\texttt{On-tick} is called on every clock tick to provide movement.
+\texttt{On-key} is called on
 key presses, and \texttt{on-mouse} on mouse events.  Writing these
 functions is well within the purview of introductory-course students.
 
@@ -719,11 +695,8 @@ Elm~\cite{Elm} is a UI toolkit and companion Haskell-like language
 that translates to JavaScript and thus allows implementing web
 applications.  Elm is in production use in open-source and
 commercial projects.  Elm's initial release in 2012 was based on FRP Signals,
-and was similar to Fruit.  Its innovation was its support for
-asynchronous I/O, which is a problem for Fruit because of its global
-approach to I/O.
-
-Elm evolved to an approach different from that of its inception,
+and was similar to Fruit.  
+Elm eventually evolved to a different approach,
 leaving its FRP legacy behind in 2016~\cite{ElmFarewellFRP}.  This approach
 gives rise to an alternative UI pattern called
 \textit{Model-View-Update}.  An Elm program mostly consists of only
@@ -737,7 +710,7 @@ update : Msg -> Model -> (Model, Cmd Msg)
 %
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\columnwidth]{model-view-update}
+  \includegraphics[width=0.6\columnwidth]{model-view-update}
   \caption{The Model-View-Update pattern}
   \Description{A diagram illustrating the flow in the
     Model-View-Update pattern: On the left is the program, on the
@@ -767,7 +740,7 @@ learn, as it does not require the developer to know any higher-level
 abstractions like signals, stream transformers or monads.  It also
 avoids the circular dependency between view and model.
 
-The idea of Model-View-Update is quite similar to that of Racket's
+Model-View-Update is quite similar to Racket's
 Universe teachpack: The view is re-constructed after every user
 interaction, and it uses a single, monolithic value for the model
 state.\footnote{Elm does not re-draw the entire UI on a call to the
@@ -775,7 +748,6 @@ state.\footnote{Elm does not re-draw the entire UI on a call to the
   function with the previous output, updating the DOM only for
   differences between the two.}  The possible messages belong to a
 single central type.
-
 Consequently, Elm also inherits the Universe teachpack's architectural
 trade-offs: It solves challenge \#1 from Section~\ref{sec:challenges},
 but has no notion of an
@@ -811,11 +783,7 @@ interaction, just like Elm.
 Elm and React represented an erstwhile peak in the evolution of
 functional APIs, intellectually hailing from Fudgets and Fruit, and
 effectively rendering the functional toolkits that came before them
-obsolete: The simplicity of the Model-View-Update paradigm makes it
-attractive for a wide spectrum of developers---specifically, it
-requires no deeper understanding of higher-level concepts such as
-stream transformers, signals, or arrows.  Yet Model-View-Update is
-powerful enough to enable even complex applications.  Consequently, we
+obsolete.  Consequently, we
 take Model-View-Update as the starting point for the further
 discussion of this paper.
 
@@ -837,8 +805,8 @@ Model-View-Update from (conceptually) re-constructing the UI on every
 change.
 
 However, instead of requiring the programmer to implement the update
-logic manually, these toolkits feature a pre-processor of the
-construction source code that generates the update code automatically.
+logic manually, these toolkits feature a pre-processor 
+that generates the update code automatically from the construction code.
 This convenience comes at a price, however, as these tookits require
 the code changing the state to be exposed to the UI toolkit, and for
 that code to use conventions recognizable to the pre-processor.  This
@@ -857,8 +825,8 @@ Section~\ref{sec:challenges}:
 \item Model-View-Update solves challenge \#1: A single function
   describes view construction, no separate logic for view update is
   needed.
-\item Implementing sub-views in a modular fashion remains a challenge:
-  A functional Elm/React application essentially manages its model
+\item Implementing modular sub-views remains a challenge:
+  A functional Elm/React application manages its model
   state as a single mutable reference at the top level, with
   everything below managed functionally.
 \item Model-View-Update also solves challenge \#3, as the cyclic call
@@ -873,7 +841,7 @@ approach needs to address facets described in this section: Updating
 the model state in a modular fashion, dealing with UI-local state, and
 breaking up global dispatch.
 
-We will illustrate these facets using a simple example: Imagine an
+We illustrate these facets using a simple example: an
 application that manages phone-book entries with name and phone
 number.  The application manages the phonebook in a functional
 manner, as a functional list of immutable entry records.  Its UI
@@ -886,9 +854,9 @@ changing the phonebook.
 \subsection{Global Model State Update}
 
 When the user changes the name, this is a local change from the point
-of view of the UI component, but leads to a global change in the
-application, which must update its phonebook reference.  So strictly
-speaking, updating the state is not the job of the name UI component
+of view of the UI component, but 
+the application must update its global phonebook reference.  Thus,
+updating the state is not the job of the name UI component
 but of all the components above it in the hierarchy that need to
 re-construct the state with the one changed name, and finally change
 the global reference at the top.
@@ -899,8 +867,8 @@ The model-state update happens when the user clicks the ``Submit''
 button.  However, the UI has to manage the contents of the text field
 as the user types in the new name one letter at a time.  This
 intermediate state is of no interest to the model, hence it is
-``UI-local''.  As it is an artifact of the UI widget and not an aspect
-of the model, the UI toolkit should enable separting the model state
+``UI-local'' and not an aspect
+of the model.  Thus, the UI toolkit should enable separating the model state
 from the UI-local state.
 
 Note that the classification between model state and UI-local state
@@ -958,9 +926,8 @@ explicit in Clojure(Script):
   (:require
     [reacl2.core :as reacl :include-macros true]
     [reacl2.dom :as dom :include-macros true]
-    [active.data.record :include-macros true
-      :as record
-      :refer-macros (def-record)]
+    [active.data.record :as record
+      :include-macros true :refer-macros (def-record)]
     [active.data.realm :as realm]))
 \end{verbatim}
 %
@@ -988,8 +955,7 @@ text-field components are rendered and behave:
 (def-record change-text
   [change-text-text :- realm/string])
 
-(reacl/defclass text-field
-  this text []
+(reacl/defclass text-field this text []
   render
   (dom/input {:onchange 
               (fn [e]
@@ -1015,7 +981,7 @@ model.
 Two clauses follow, the first of which is \texttt{render}, which
 generates the view from the app state \texttt{text}.  This is
 straightforward HTML with a callback attached that fires whenever the
-user changes the text.  In that case, the callback sends a
+user changes the text.  The callback sends a
 message to the component that describes the user's intention,
 in this case to change the text in the form of a \texttt{change-text}
 record.
@@ -1027,9 +993,9 @@ message it receives.  In this case, the only possible message is a
 \texttt{change-text} record, but often components allow for more than
 one kind of interaction, which is why there is a \texttt{cond} here that
 identifies the \texttt{change-text} record.  The function then calls
-\texttt{reacl/return}, which constructs a value that tells Reacl what
+\texttt{reacl/return}, which tells Reacl what
 to do---in this case replace the app state of the component with the
-text from the message, effectively performing an update as in the
+text from the message, performing an update as in the
 Model-View-Update pattern.\footnote{Since the development of Reacl,
   React has adopted a similar mechanism to \texttt{handle-message}
   called \textit{reducers}.}
@@ -1045,7 +1011,7 @@ Section~\ref{sec:vague-semantics}.)
 Next, we create a UI component for actually editing a name from a
 phonebook.  The idea is that the phonebook will only be changed when
 the user clicks on a \texttt{Submit} button.  Consequently, the app
-state of the name component, while it is also a string, will only
+state of the name component will only
 change when \texttt{Submit} is pressed.  However, the component still
 needs to keep track of current content of the text field.  To that
 end, it keeps a \textit{local state}, which is not reflected in the
@@ -1063,20 +1029,21 @@ creation of the component is \texttt{text}.  Here is the
 \texttt{render} clause, which creates an HTML form:
 %
 \begin{verbatim}
-  (dom/form
-   {:onsubmit (fn [e]
-                (.preventDefault e)
-                (reacl/send-message! this (submit)))}
-   (dom/div (text-field
-             (reacl/opt
-               :reaction
-               (reacl/reaction
-                 this
-                 (fn [text]
-                   (change-text
-                     change-text-text text))))
-             current-text)
-            (dom/button "Submit")))
+render
+(dom/form
+ {:onsubmit (fn [e]
+              (.preventDefault e)
+              (reacl/send-message! this (submit)))}
+ (dom/div (text-field
+           (reacl/opt
+             :reaction
+             (reacl/reaction
+               this
+               (fn [text]
+                 (change-text
+                   change-text-text text))))
+           current-text)
+          (dom/button "Submit")))
 \end{verbatim}
 %
 This calls \texttt{text-field} to create a text-field component,
@@ -1105,15 +1072,14 @@ messages, updating the local state for \texttt{change-name} and the
 app state for \texttt{submit}:
 %
 \begin{verbatim}
-  handle-message
-  (fn [msg]
-    (cond
-      (record/is-a? change-name msg)
-      (reacl/return
-        :local-state (change-name-text msg))
-
-      (record/is-a? submit msg)
-      (reacl/return :app-state current-name))))
+handle-message
+(fn [msg]
+  (cond
+    (record/is-a? change-name msg)
+    (reacl/return
+      :local-state (change-name-text msg))
+    (record/is-a? submit msg)
+    (reacl/return :app-state current-name))))
 \end{verbatim}
 %
 This example shows how Reacl deals with the three challenges described
@@ -1131,7 +1097,7 @@ in Section~\ref{sec:modularity-challenges}:
 \end{description}
 %
 It should be noted that Reacl also has a mechanism not described here
-for side effects external to the UI component and global side effects,
+for side effects external to the UI component 
 such as network
 communication.  In order to make the core of the UI application pure,
 it creates an \textit{action}, which is similar to a message with the
@@ -1144,41 +1110,35 @@ This achieves modularity for actions in a way similar to reactions.
 \label{sec:vague-semantics}
 
 User interface construction remains a struggle. In addition to
-challenges described above, UI programming -- and testing -- is
-considered difficult for reasons that are beyond the grasp of UI
+the challenges described above, UI programming---and testing---is
+difficult for reasons beyond the grasp of UI
 tools.
 
-Many functional user interface frameworks and libraries claim that
-they allow users to describe their UI as a pure function from state
-(domain model) to a description of a graphical display---for example
-HTML. According to FP folklore, pure functions are easy to
-test. Consequently, it should be easy to write UI tests: Run the
-function \texttt{f} that is your UI for a sample \texttt{state} of
+With the machinery of Model-View-Update, it should be easy to write UI tests: Run the
+\texttt{view }function for a sample \texttt{state} of
 your domain logic and compare the resulting graphical display
-\texttt{(f state)} to your desired version. Even forgetting about
+\texttt{(view state)} to your desired version. Even forgetting about
 the dynamic nature of UIs for a moment, this approach rarely results
-in good tests. Take this temparature display in pseudo-code:
+in good tests. Take this temperature display in pseudo-code:
 %
 \begin{verbatim}
-(defn f [temp]
+(defn view [temp]
   (dom/div
     {:style (if (too-hot? temp)
               "background: red;"
               "")}
     (temperature->string temp))
-; test
-(assert-equal (f 22)
-  (dom/div "22")
-(assert-equal (f 183)
+(assert-equal (view 22) (dom/div "22")
+(assert-equal (view 183)
   (dom/div {:style "background: red;"} "183"))
 \end{verbatim}
 %
-This trivial test already misses the mark. Say we are dissatisfied
+This trivial test is already problematic. Say we are dissatisfied
 with a red background color but we still want to emphasize
 temperatures that are too hot. It is reasonable to assume that a red
-border is sufficient to fulfill that need. Our test, however, is of a
-different opinion. Our test demands backgrounds to be red. In these
-situations we have to adapt both our implementation \textit{and} our
+border is sufficient to fulfill that need. Our test, however,
+demands that the background be red. To make the change,
+we have to adapt both our implementation \textit{and} our
 tests. This is fine if these situations happen rarely. In UI
 programming, they happen more often than not.
 
@@ -1190,7 +1150,7 @@ however. In the example above we want to ensure ``emphasis'', which as
 an abstract concept is hard to formalize. Much of what it takes for an
 user interface widget to be considered emphasized is out of reach for
 its own graphical display: For one, user's habits and expectations
-change constantly. A graphical representation that is perfectly
+change. A graphical representation that is perfectly
 emphatic today might have been overlooked ten years ago. Additionally,
 context plays an important role. A graphical representation that is
 perfectly emphatic when surrounded by white space appears too timid
@@ -1201,9 +1161,9 @@ depending on how well specified and specifiable they are.
 \textit{S} is for ``programs whose function is formally defined by and
 derivable from a specification'', \textit{P} is for programs that have
 a formal specification, but ``the acceptability of a solution is
-determined by the environment in which it is embedded,'' and
+determined by the environment in which it is embedded'', and
 \textit{E} is for ``programs that mechanize a human or societal
-activity.'' Classes \textit{P} and \textit{E} are further aggregated
+activity''. Classes \textit{P} and \textit{E} are further aggregated
 to form class \textit{A} -- programs ``that represent a computer
 application in the real world''. The distinction between \textit{S}
 and \textit{A} programs aligns with our distinction between software
@@ -1212,8 +1172,7 @@ aspects that have a precise formal semantics and vague aspects like
 or even formal verification. While it requires effort to write tests
 or proofs, running automated tests or checking proofs is
 cheap. \textit{A} programs on the other hand require manual tests to
-verify their correctness. Running manual tests regularly is expensive
-and may be totally infeasible for some software projects.
+verify their correctness.
 
 While most UI software falls into the \textit{A} class \textit{in its
   entirety}, large software is made from smaller parts, which in turn
@@ -1223,8 +1182,7 @@ temperature display example above, we already identified
 semantics---an \textit{A} aspect. In contrast, the function
 \texttt{tooHot} solely operates in terms of the core domain
 logic. This function is independent of its context or any human habits
-or practices. It belongs to class \textit{S}, and is therefore
-amenable to automated tests and verification.
+or practices, and thus belongs to class \textit{S}.
 
 This S/A separation also applies to Reacl's separation between a UI
 widget's event handler, the representation of the user's intention,
@@ -1244,12 +1202,10 @@ pattern.
 \section{From Reacl to reacl-c}
 \label{sec:reacl-c}
 
-Reacl improves on its predecessors in terms of modularity. Modularity
-is a neccessary prerequisite for reusability, but it is not
-sufficient. Reacl allows for many different styles of component
+Reacl allows for many different styles of component
 composition, which makes it hard to write widely applicable reusable
-abstractions. Over the years there emerged some patterns of writing
-Reacl components that allowed for a more compositional programming
+abstractions. Over the years some patterns for
+Reacl components emerged that allowed for a more compositional programming
 style. This eventually led to the creation of the \textit{reacl-c}
 library~\cite{reacl-c}.
 
@@ -1281,12 +1237,10 @@ that works on these component constructor functions (instead of
 working on components), which is awkwardly indirect.
 To that end, reacl-c does away with the
 separation between classes and their components.
-Instead, it offers a set of UI primitives and combinators for
-\textit{items}.  
 
 Another pattern that emerged from experience with Reacl
 is the relationship between parent
-and child, which is often best described by a lens\cite{Lenses}:
+and child, which is often best described by a lens~\cite{Lenses}:
 A child component is often responsible for part of its parent's
 state. That means that the data flow from parent to child works like
 the \texttt{GET} operation of a suitable lens and the data flow from
@@ -1294,24 +1248,22 @@ child to parent corresponds to the \texttt{PUTBACK} operation.
 
 \subsection{User-Interface Combinators}
 
-reacl-c is a ClojureScript combinator library for modular UI widgets
-called ``items''.  Just like its predecessors Elm and Reacl, reacl-c
+Just like its predecessors Elm and Reacl, reacl-c
 deals with updates by logically recomputing the display upon every
 change of the underlying data. Similarly, there are no circular
 callbacks. State is kept local to each item. The relationship between
-two different items' state is mostly expressed with lenses.  reacl-c's small
+the states of two different items is mostly expressed with lenses.  reacl-c's small
 set of flexible combinators allows developers to express abstractions
-that increase reuse and help to sharply delineate the distinction of S
+that increase reuse and help sharply delineate the distinction of S
 and A code.
 
-Even though ClojureScript is not statically typed, we use an imaginary
-Haskellian type system to illustrate the API of reacl-c. The unit of
+The unit of
 composition in reacl-c is called \textit{item}. All reacl-c items have
 a notion of state, items may have a visual appearance, items may issue
 actions and messages, and items may perform controlled effects.  For
 this overview it suffices to focus on visuals and state. As of now
 reacl-c is tailored to web GUIs, so visuals are always of the DOM
-type. An item can therefore be described by the type \texttt{Item
+type. An item can therefore be described by the (imaginary) type \texttt{Item
   state}, where \texttt{state} is the type of the item's state.
 
 Strings are primitive, state-agnostic items that simply display as
@@ -1329,8 +1281,7 @@ type of state, the new item
 %
 \begin{verbatim}
 (div
- {:style
-  {:border "1px solid blue"}}
+ {:style {:border "1px solid blue"}}
  i j) : Item s
 \end{verbatim}
 %
@@ -1342,8 +1293,7 @@ arguments that allow users to update state. The item
 %
 \begin{verbatim}
 (button
- {:onClick (fn [x] (+ x 1))}
- "Inc") : Item Int
+ {:onClick (fn [x] (+ x 1))} "Inc") : Item Int
 \end{verbatim}
 %
 displays a button with the label ``Inc'' that increments its state
@@ -1352,73 +1302,63 @@ for the \texttt{:onClick} argument takes the current state as its
 first argument and returns a new state value for the next logical UI
 cycle.
 
-\texttt{focus} is an item combinator that works on state. It takes an
+\texttt{focus} is an item combinator that takes an
 item that operates on state of type \texttt{s} and a lens between
 types \texttt{s} and \texttt{t} and returns a new item that operates
 on type \texttt{t}.  Given the increment button above as
 \texttt{incButton}, we can build a GUI for a tuple of two integers by
-combining the use of \texttt{focus} and \texttt{div}:
+combining \texttt{focus} and \texttt{div}:
 %
 \begin{verbatim}
 (div
  (focus lens/first incBut)
- (focus lens/second incBut))
- : Item (Int, Int)
+ (focus lens/second incBut)) : Item (Int, Int)
 \end{verbatim}
 %
 All items above only update
-state but never display it. That's where
+state but never display it. That's where the \texttt{dynamic} item
+constructor comes into play:
 %
 \begin{verbatim}
-dynamic : forall s.
-          (s -> Item s)
-          -> Item s
+dynamic : forall s.(s -> Item s) -> Item s
 \end{verbatim}
 %
-comes into play.  The item constructor \texttt{dynamic} takes a
-function that gets the current state of type \texttt{s} as an argument
-and has to produce an item with that same state type. We can use
+This takes a
+function that gets the current state of type \texttt{s} 
+and produces an item with that same state type. We can use
 \texttt{dynamic} to build an increment button that displays the
 current value as its label:
 %
 \begin{verbatim}
 (c/dynamic
  (fn [i]
-  (button
-   {:onClick (fn [x] (+ x 1)}
-   (str i)))))
+  (button {:onClick (fn [x] (+ x 1)} (str i)))))
 \end{verbatim}
 %
 The item combinator
 %
 \begin{verbatim}
-isolate-state : forall s t.
-                t
-                -> Item t
-                -> Item s
+isolate-state : forall s t.t -> Item t -> Item s
 \end{verbatim}
 %
 takes an initial value of type \texttt{t} and an item of
 type \texttt{Item t} and ``runs'' the item with the given initial
 state value. The resulting item can be used in any state context. This
-is a way to completely detach an item's state from its surrounding
+detaches an item's state from its surrounding
 state.
 
 A less drastic combinator is
 %
 \begin{verbatim}
-local-state : forall s t.
-              t
-              -> Item (s, t)
-              -> Item s
+local-state : forall s t.t -> Item (s, t) -> Item s
 \end{verbatim}
 %
 which takes an initial value of type \texttt{t} and an item that
 operates on state of type \texttt{(s, t)}. The result is an item that
 operates on state of type \texttt{s}. When viewed from the perspective
-of the parent item \texttt{local-state} introduces the right part of
+of the parent item, \texttt{local-state} introduces the right part of
 the state tuple to form the child's state. When viewed from the
-perspective of the child item \texttt{local-state} hides the right
+perspective of the child item, \texttt{local-state} hides the right
 part of the state tuple from the parent.
 
 These combinators (along with a handful of others) enable programming
@@ -1453,19 +1393,15 @@ JavaScript interop.
    (fn [text]
     (dom/input
      {:value text
-      :onChange
-      (fn [old-text event]
-        (.-value
-         (.-target event)))}))))
+      :onChange (fn [old-text event]
+                  (.-value (.-target event)))}))))
 \end{verbatim}
 %
 As shown above the \texttt{:onChange} handler describes how to update
 the current state.  Here we see how reacl-c integrates with the native
 DOM bedrock of the browser: The \texttt{:onChange} handler takes a
 native DOM event object as an optional second
-parameter\footnote{Strictly speaking, since reacl-c uses React
-underneath, these event objects ara React wrappers around native DOM
-events}. We can obtain the desired result text via this object.
+parameter which contains the desired result text.
 
 We can build a text editor with a Submit button, similar to the Reacl
 version above with the help of \texttt{local-state}. Here we can reuse
@@ -1482,12 +1418,8 @@ version above with the help of \texttt{local-state}. Here we can reuse
          (fn [[outer-text current-text] event]
            (.preventDefault event)
            [current-text current-text])}
-       (c/focus
-        lens/second
-        text-field)
-       (dom/button
-        {:type "submit"}
-        "Submit"))))))
+       (c/focus lens/second text-field)
+       (dom/button {:type "submit"} "Submit"))))))
 \end{verbatim}
 %
 The \texttt{local-state} function pairs local state \texttt{current-text}
@@ -1495,8 +1427,7 @@ with the item's state, called \texttt{outer-text} in the submit
 callback.  (Thus, differently from Reacl, the local state becomes part
 of the state rather than being bound to a separate variable.)  The
 call to \texttt{focus} that embeds \texttt{text-field} focusses the
-\texttt{text-field} component on that local state via the
-\texttt{second} lens.
+\texttt{text-field} component on that local state.
 %
 \begin{center}
 \begin{tikzpicture}
@@ -1513,21 +1444,17 @@ call to \texttt{focus} that embeds \texttt{text-field} focusses the
 \end{center}
 %
 Many relationships between different parts of GUI applications can be
-expressed as lenses, so the \texttt{focus} combinator makes for very
-powerful glue.  Record field names defined by \texttt{def-record} from
-\texttt{active.data.record} are also lenses in this sense so these
-record definitions integrate nicely with reacl-c. The following
+expressed as lenses, so the \texttt{focus} combinator makes for 
+powerful glue.  (Record field names defined by \texttt{def-record} from
+\texttt{active.data.record} are also lenses.) The following
 example shows a small UI that manages a single entry in our phonebook
 application.
 %
 \begin{verbatim}
 (def entry-item
-  ;; model: entry
-  (dom/div
-   "Name:"
-   (c/focus entry-name text-editor)
-   "Tel:"
-   (c/focus entry-phone-number text-editor)))
+  (dom/div "Name:" (c/focus entry-name text-editor)
+           "Tel:" (c/focus entry-phone-number
+                           text-editor)))
 \end{verbatim}
 %
 \begin{center}
@@ -1563,21 +1490,18 @@ with a lens from \texttt{active.clojure.lens}:
 %
 \begin{verbatim}
 (def phonebook
-  ;; model: sequence-of entry
   (c/dynamic
    (fn [entries]
      (apply
       dom/div
       (map (fn [idx]
-             (c/focus
-              (lens/at-index idx)
-              entry-item))
-           (range
-            (count entries)))))))
+             (c/focus (lens/at-index idx)
+                      entry-item))
+           (range (count entries)))))))
 \end{verbatim}
 %
 Here we map over the indices of the entries in the phonebook and use
-\texttt{(c/focus (lens/at-index idx) ...)} to use the \texttt{entry}
+\texttt{(c/focus (lens/at-index idx) ...)} to focus on the \texttt{entry}
 item for each phonebook entry.
 %
 This pattern is very common when
@@ -1592,14 +1516,10 @@ distill this pattern into a custom combinator:
      (apply
       dom/div
       (map (fn [idx]
-             (c/focus
-              (lens/at-index idx)
-              child-item))
-           (range
-            (count xs)))))))
-
-(def phonebook-2
-  (map-item entry))
+             (c/focus (lens/at-index idx)
+                      child-item))
+           (range (count xs)))))))
+(def phonebook-2 (map-item entry))
 \end{verbatim}
 %
 In contrast to Reacl components, items such as \texttt{child-item} are
@@ -1607,27 +1527,23 @@ not wired to any other UI widgets, so the \texttt{map-item} combinator
 can use \texttt{focus} to establish a connection between its state and
 \texttt{child-item}'s state.
 %
-For our rudimentary phonebook application we also want to show a simple
-button with a label ``Add new'' that inserts a new entry into the
+For our rudimentary phonebook application we also want to show a 
+button that inserts a new entry into the
 phonebook.
 %
 \begin{verbatim}
 (def empty-entry
-  (entry entry-name ""
-         entry-phone-number ""))
-
+  (entry entry-name "" entry-phone-number ""))
 (def phonebook-with-add-button
   (dom/div
    phonebook-2
    (dom/button
     {:onClick
-     (fn [phonebook _]
-       (conj phonebook
-             empty-entry))}
+     (fn [phonebook _] (conj phonebook empty-entry))}
     "Add new")))
 \end{verbatim}
 %
-This button can directly work with the entire phonebook state.
+This button works with the entire phonebook state.
 %
 \begin{center}
 \begin{tikzpicture}
@@ -1701,13 +1617,11 @@ emphasis into an isolated item combinator:
            item))
 \end{verbatim}
 %
-So far the domain model and the state of our items is the same. Now
+So far the domain model and the state of our items has been the same. Now
 we also have to keep track of which entry to \texttt{emphasize}. We
 therefore separate our domain model from the model of our UI state. This
-pattern is well-known in the OO community, where it is referred to as
-the ``Model-View-ViewModel'' pattern (MVVM)~\cite{MVVM}. Here we give a brief
-introduction of how to use view models functionally.
-
+is a pattern well-known in the OO community
+as ``Model-View-ViewModel'' (MVVM)~\cite{MVVM}.
 Our view model includes a phonebook entry from the core domain model,
 enriched with the information whether this particular entry should be
 emphasized. A phonebook view model consists of a sequence of such
@@ -1723,7 +1637,7 @@ It probably doesn't make sense to have more than one \texttt{entry} with
 \texttt{entry-vm-emphasized?} set to \texttt{true}. There are many ways to
 ensure this constraint. Here we decide to provide a set of smart
 constructors and accessors that keep the constraint satisfied. First,
-we need the idea of an empty phonebook:
+we need an empty phonebook:
 %
 \begin{verbatim}
 (def empty-phonebook [])
@@ -1735,47 +1649,39 @@ books is to use an \texttt{add-new-entry} function:
 \begin{verbatim}
 (defn deemphasize [entry]
   (entry-vm-emphasized? entry false))
-
 (defn add-new-entry [entries]
   (conj (mapv deemphasize entries)
         (entry-vm entry-vm-entry empty-entry
                   entry-vm-emphasized? true)))
 \end{verbatim}
 %
-\texttt{add-new-entry} is a perfect candidate for thorough
-testing: It is a pure function with precise semantics and a
-non-trivial implementation.
+\texttt{add-new-entry} is a pure function with precise semantics and
+thus a perfect candidate for testing.
 
-These definitions make up our view model. The corresponding
+These definitions constitute our view model. The corresponding
 UI code is straightforward. The new entry item \texttt{entry-item-2}
 handles emphasis conditionally and then delegates on to the
 \texttt{entry-item} defined above.
 %
 \begin{verbatim}
 (def entry-item-2
-  ;; model: entry-vm
   (c/dynamic
    (fn [entry-vm]
      ((if (entry-vm-emphasized? entry-vm)
-        emphasize
-        identity)
-      (c/focus entry-vm-entry
-               entry-item)))))
-
+        emphasize identity)
+      (c/focus entry-vm-entry entry-item)))))
 (def phonebook-item-2
   (map-item entry-item-2))
 \end{verbatim}
 %
 The phonebook still needs an ``Add new'' button. This button
-now simply calls the right function from the view model.
+now simply calls \texttt{add-new-entry}:
 %
 \begin{verbatim}
 (def phonebook-with-add-button-item-2
-  (dom/div
-   phonebook-item-2
-   (dom/button
-    {:onClick add-new-entry}
-    "Add new")))
+  (dom/div phonebook-item-2
+           (dom/button {:onClick add-new-entry}
+                       "Add new")))
 \end{verbatim}
 %
 The view-model pattern enabled by reacl-c allows moving part of the UI
@@ -1789,7 +1695,7 @@ makes sense, and minimizes the amount of code where it does not.
 \label{sec:conclusion}
 
 UI programming and the architecture of UI program have evolved
-significantly since the MVC pattern, even though the basic tenets of
+significantly since the MVC pattern, but the basic tenets of
 MVC are still in place.  Object-oriented and functional approaches
 have had complementary trade-offs: Pure MVC featured good modularity
 from the start, but has struggled with keeping the view current with
@@ -1797,13 +1703,14 @@ respect to the view.
 Conversely, the functional Model-View-Update pattern in its pure form
 solves the update problem but struggles with modularity.  We have
 described the Reacl and reacl-c UI toolkits that address the
-modularity issues with Model-View-Update, and how to enhance
+modularity issues with Model-View-Update, and shown how to enhance
 Model-View-Update with functional view models to further modularize UI
 programs.
 
 \begin{acks}
   We thank David Frese, the principal designer of reacl-c, for
-  assistance with the example code.
+  assistance with the example code.  We also thank the reviewers for
+  their helpful comments.
 \end{acks}
 
 %%
