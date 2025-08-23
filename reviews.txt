@@ -25,10 +25,6 @@ the model state is a single value, and there is no simple way to split it—and 
 
 ------
 
-I'm finding the numbering of the challenges a bit hard to remember. Maybe giving a name to a each challenge could make later recollection easier. Like the challenge of model update granularity, the challenge of value duplication, and the challenge of looping updates.
-
-------
-
 Line 639
 
 Where it says: ... Immutable properties that flow downward in the sub-view tree.
