@@ -64,15 +64,6 @@ Review #3B
 
 The second half of the paper is rather difficult to read.  This is partly because the original syntax of Realc and real-c.  Also, it is not easy to imagine behavior of the example code fragments to the reviewer, who has not known those frameworks before reviewing.  It was only possible to follow the high-level arguments.
 
-# minor comments
-
-- l.408 "toolkits that implemented genuinely functional ideas"
- 	I can only vaguely understand what "genuinely functional ideas" mean.  Are these ideas higher-order functions, pure-functionality, functional compositionality or something else?
-
-
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-
 Review #3C
 ===========================================================================
 
