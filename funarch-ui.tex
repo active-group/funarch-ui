@@ -1051,8 +1051,7 @@ record declaration:
 (def-record submit [])
 \end{verbatim}
 %
-(The \texttt{.preventDefault} call prevents the web form from causing
-a complete reset of the application upon submission.)
+(The Web DOM \texttt{.preventDefault} call is just a technical necessity.)
 
 Finally, the \texttt{handle-message} function dispatches on the two
 messages, updating the local state for \texttt{change-name} and the

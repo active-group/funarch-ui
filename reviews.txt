@@ -46,15 +46,6 @@ React is said to have some new concepts (subcomponents plus mutable and immutabl
 
 ------
 
-Line 910
-
-It says: The .preventDefault call prevents the web form from causing a complete reset of the application upon submission.
-
-
-The meaning of "complete reset" is absent in the text, and rather surprising in the narrative. A toolkit reseting the application by default sounds as a peculiar notion. Perhaps, it has to do with the conceptual model of Reacl. I don't know if it is worth entering the details in the prose.
-
-------
-
 Section 11 only reveals the point that the authors want to make in the last paragraph. Most notably:
 * reacl-c has no separate update code, modular components, no circular callbacks.
 * it allows to define abstractly the notion of emphasis for the sake of testing
