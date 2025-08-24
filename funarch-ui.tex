@@ -746,7 +746,7 @@ Consequently, Elm also inherits the Universe teachpack's architectural
 trade-offs: It solves the \hyperlink{challenge:update}{\textit{Update}} challenge from Section~\ref{sec:challenges},
 but has no notion of an
 independent, composable ``UI component'' and thus faces the
-\textit{Modularity }challenge.
+\hyperlink{challenge:modularity}{\textit{Modularity}} challenge.
 
 Shortly after Elm's initial release, Facebook released their web UI
 toolkit \textit{React}, which was also based on a variation of the
@@ -760,7 +760,8 @@ Where Elm gives the UI program complete freedom in the choice of
 \texttt{Model} type, React differentiates two kinds of state:
 Immutable \textit{properties} flow downward in the sub-view
 tree---the property of a sub-view needs to be extractable purely from the
-property of its parent.
+property of its parent.  Properties face the
+\hyperlink{challenge:modularity}{\textit{Modularity}} challenge.
 Each component also has its own associated mutable \textit{state},
 which needs to be organized as a JavaScript hash map.
 
@@ -770,6 +771,11 @@ callbacks can either mutate the component state or cause the
 properties to be replaced.  Conceptually, React ignores the difference
 between these two methods and re-renders the entire UI on each
 interaction, just like Elm.
+
+Both React and Elm leave solving the
+\hyperlink{challenge:modularity}{\textit{Modularity}} challenge to the
+developers, and the communities of both have produced patterns to
+alleviate the problem.
 
 % FIXME: maybe notes on the implementation
 

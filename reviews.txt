@@ -11,13 +11,6 @@ This is true, but the paper devotes long sections at the end to present a design
 
 ------
 
-Line 662
-
-Where it says: Yet Model-View-Update is powerful enough to enable even complex applications. A discussion is missing on how Elm and React do better than Universe teachpack to scale. Elm is said to inherit the same tradeoff, so how is it better then?
-React is said to have some new concepts (subcomponents plus mutable and immutable state). How do these features allow applications to scale?
-
-------
-
 Section 11 only reveals the point that the authors want to make in the last paragraph. Most notably:
 * reacl-c has no separate update code, modular components, no circular callbacks.
 * it allows to define abstractly the notion of emphasis for the sake of testing
