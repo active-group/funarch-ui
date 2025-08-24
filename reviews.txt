@@ -11,20 +11,10 @@ This is true, but the paper devotes long sections at the end to present a design
 
 ------
 
-Line 639
-
-Where it says: ... Immutable properties that flow downward in the sub-view tree.
-
-The text is missing an example of what is meant. After pondering for a bit, I think "immutable property" means a constant value. In any case, the text could be more precise and explicit.
-
-------
-
 Line 662
 
 Where it says: Yet Model-View-Update is powerful enough to enable even complex applications. A discussion is missing on how Elm and React do better than Universe teachpack to scale. Elm is said to inherit the same tradeoff, so how is it better then?
 React is said to have some new concepts (subcomponents plus mutable and immutable state). How do these features allow applications to scale?
-
-------
 
 ------
 

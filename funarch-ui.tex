@@ -758,7 +758,9 @@ own associated state.
 
 Where Elm gives the UI program complete freedom in the choice of
 \texttt{Model} type, React differentiates two kinds of state:
-Immutable \textit{properties} that flow downward in the sub-view tree.
+Immutable \textit{properties} flow downward in the sub-view
+tree---the property of a sub-view needs to be extractable purely from the
+property of its parent.
 Each component also has its own associated mutable \textit{state},
 which needs to be organized as a JavaScript hash map.
 
