@@ -11,11 +11,6 @@ This is true, but the paper devotes long sections at the end to present a design
 
 ------
 
-The two paragraphs at the end of section 3 could use references to specific UI toolkits and projects that have to deal with such restrictions. When the last paragraph says "non-linear arrangement", I don't understand what the authors mean with the term.
-
-I could imagine a spaghetti of callbacks, but it is still fuzzy how that is generated because of the restriction on where UI calls are allowed. Probably a reference here would avoid having to develop longer explanations in the paper.
-------
-
 Line 639
 
 Where it says: ... Immutable properties that flow downward in the sub-view tree.

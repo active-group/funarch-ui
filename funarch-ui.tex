@@ -515,7 +515,8 @@ Thus, typical MVC UI toolkits couple the control flow of the
 central event loop to the control flow of the subscriber callbacks,
 which includes the code that manipulates the model.  The restrictions
 resulting from this coupling often force developers to write these
-callbacks and their dependencies in a non-linear arrangements,
+callbacks and their dependencies in such a way that their arrangement
+in the code does not follow the actual sequence of events at run time,
 creating a style of programming colloquially known as \textit{callback
   hell}.
 
