@@ -350,6 +350,7 @@ class Temperature extends Model {
   \vspace*{-3ex}
   \caption{Model for weather data}
   \label{fig:weather-model}
+  \Description{Pseudocode listing}
 \end{figure}
 
 \begin{figure}[tb]
@@ -388,13 +389,14 @@ class WeatherView(field weatherModel: Weather) {
   \vspace*{-2ex}
   \caption{View for weather data}
   \label{fig:weather-view}
+  \Description{Pseudocode listing}
 \end{figure}
 
 The example also illustrates the first two challenges:
 The code for constructing the string representing the pressure
 and temperature is duplicated between the code that constructs the
-text field and the code that updates it.  It is possible to abstract
-out some code, but the fundamental
+text field and the code that updates it.  Some code can be abstracted,
+but the fundamental
 \hyperlink{challenge:update}{\textit{Update}} challenge remains.
 The code contains two sub-views, updated separately, addressing the
 \hyperlink{challenge:modularity}{\textit{Modularity}} challenge.
@@ -443,6 +445,7 @@ class TemperatureView2
   %
   \caption{Two different sub-views on the same model}
   \label{fig:temperature-view2}
+  \Description{Pseudocode listing}
 \end{figure}
 %
 Figure~\ref{fig:temperature-view2} shows a different view, just on the
@@ -701,6 +704,13 @@ update : Msg -> Model -> (Model, Cmd Msg)
     Another arrow labeled ``update'' goes in the opposite direction,
     labeled to carry \texttt{Msg}.}
   \label{fig:mvu}
+  \Description{The diagram shows a process box on the left
+    representing the UI program, and a screen with a person sitting in
+    front on the right.  The UI program box has an arrow coming out at
+    the top, in a place labelled ``view'', with the arrow itself
+    labelled ``Html'', and pointing to the screen.  The UI program box
+    also has an arrow coming in, in a place labelled ``update'', with
+    the arrow itself labelled ``Msg''.}
 \end{figure}
 %
 Figure~\ref{fig:mvu} illustrates the pattern.
