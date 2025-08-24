@@ -300,7 +300,7 @@ software architects:
   correspondingly represent a larger chunk of the model
   simplifies the change logic, as it requires fewer implementations of
   \texttt{update}. However it also increases coupling between model
-  and view.  Moreover, it causes potential performance issues when 
+  and view.  It also causes potential performance issues when 
   a change is only to a small part of the model and only needs a
   small part of the view to change: In that case, \texttt{update}
   either spends time drilling down to this small part of the view or
@@ -313,6 +313,16 @@ software architects:
 \end{description}
 %
 % weather composite, air pressure, temperature controls
+%
+Consider the following practical example:
+Figure~\ref{fig:weather-model} shows object-oriented pseudocode for a
+weather model that contains air pressure and temperature, each with
+its own encapsulated state.  Figure~\ref{fig:weather-view} shows
+skeleton code for a view that displays both in text fields.  The code
+demonstrates nicely the modularity of the approach, as
+\texttt{PressureView} and \texttt{TemperatureView} each subscribe to
+their respective models, with no coordination required from
+\texttt{WeatherView}.
 
 \begin{figure}[tb]
 \begin{verbatim}
@@ -390,31 +400,20 @@ class WeatherView(field weatherModel: Weather) {
   \caption{View for weather data}
   \label{fig:weather-view}
 \end{figure}
-%
-\noindent Consider the following practical example:
-Figure~\ref{fig:weather-model} shows object-oriented pseudcode for a
-weather model that contains air pressure and temperature, each with
-its own encapsulated state.  Figure~\ref{fig:weather-view} shows
-skeleton code for a view that displays both in text fields.  The code
-demonstrates nicely the modularity of the approach, as
-\texttt{PressureView} and \texttt{TemperatureView} each subscribe to
-their respective models, with no coordination required from
-\texttt{WeatherView}.
-The example also illustrates the first two challenges explained above:
-%
-\begin{enumerate}
-\item The code for constructing the string representing the pressure
-  and temperature is duplicated between the code that constructs the
-  text field and the code that updates it.  It is possible to abstract
-  out some code, but the fundamental separation between construction
-  and update---which have to be consistent---remains.
-\item The code contains two sub-views, updated separately.
-  Alternatively, the subscription and update could happen between
-  \texttt{WeatherView} and \texttt{Weather}, reducing modularity
-  somewhat but also reducing the amount of code required.
-\end{enumerate}
-%
-Note that the views are missing code to unsubscribe them from their
+
+The example also illustrates the first two challenges:
+The code for constructing the string representing the pressure
+and temperature is duplicated between the code that constructs the
+text field and the code that updates it.  It is possible to abstract
+out some code, but the fundamental
+\hyperlink{challenge:update}{\textit{Update}} challenge remains.
+The code contains two sub-views, updated separately, addressing the
+\hyperlink{challenge:modularity}{\textit{Modularity}} challenge.
+Alternatively, the subscription and update could happen between
+\texttt{WeatherView} and \texttt{Weather}, reducing modularity
+somewhat but also reducing the amount of code required.
+
+The views are missing code to unsubscribe them from their
 respective models---this further complicates the interaction between
 model and view.
 
@@ -466,8 +465,7 @@ the views update the model.  This demonstrates the
 described above: There is now an update loop between the model and
 the two views: Each update to the model updates the view, which
 updates the model, and so on.  The code could break the loop by
-checking whether the new value is different from the old before
-calling \texttt{changed}, but this is brittle---especially as
+checking whether the new value is different from the old, but this is brittle---especially as
 floating-point rounding is involved in the conversion between the
 three units.
 
@@ -534,15 +532,14 @@ for UIs that construct values.
 \subsection{eXene}
 
 The eXene~\cite{eXene} toolkit was developed as part of the Concurrent
-ML project~\cite{ConcurrentML} (CML).  CML is a combinator library in
-Standard ML for arbitrarily assembling communication events.  EXene
+ML project~\cite{ConcurrentML} (CML).  EXene
 uses Concurrent ML to solve the event-loop problem described in
 Section~\ref{sec:event-loop}.  In eXene, the global event loop is
 relegated to the background in favor of individual event loops running
 in threads, each associated with a particular UI widget.  Rather than calling
 subscriber methods directly, the global event loop sends asynchronous
-messages to the widget event loops, decoupling them.  Implementors
-of components are afforded great flexibility in orchestrating their
+messages to the widget event loops, decoupling them.  Developers
+are afforded great flexibility in orchestrating their
 actions through CML's event combinators.
 
 While CML and eXene originated in the context of functional
@@ -556,8 +553,7 @@ Haskell's lazy evaluation makes just adding functions that ``do
 stuff'' impractical.  Consequently, interacting with the outside world
 was a challenge for the designers of Haskell during its
 nascency in the 1990s.  This also affects the designers of UI
-libraries who were motivated to specify UIs in terms of pure
-functions.  A notable early attempt to do this was the
+libraries.  A notable early attempt to do this was the
 \textit{Fudgets} toolkit~\cite{Fudgets}.  (Fudgets is still being maintained.)
 
 Fudgets represents a UI component (a \textit{fudget}) as a
@@ -568,8 +564,8 @@ UI structure and reactivity in a hierarchical fashion.  Fudgets
 completely abstracts the event-loop paradigm away from the user
 program, which consists exclusively of pure functions.
 
-The structure of Fudgets widgets is static by default.  UIs
-frequently need to have dynamic structure, however---for example, when
+Most UIs
+need to have dynamic structure---for example, when
 displaying a list of UI items that supports adding and removing
 elements.  Fudgets addresses this by combinators that accept special
 command values that describe mutations of the UI structure,
@@ -763,7 +759,7 @@ tree---the property of a sub-view needs to be extractable purely from the
 property of its parent.  Properties face the
 \hyperlink{challenge:modularity}{\textit{Modularity}} challenge.
 Each component also has its own associated mutable \textit{state},
-which needs to be organized as a JavaScript hash map.
+which needs to be a JavaScript hash map.
 
 Thus, React's model of reactivity is different from Elm's: The UI
 program attaches imperative callbacks to UI components, and these
@@ -1136,17 +1132,15 @@ not with a red background but a border.  Our test
 demands that the background be red. To make the change,
 we have to adapt both our implementation \textit{and} our
 test.
-
 A good
-test checks whether an implementation satisfies a given interface,
-while allowing for many different implementations. The interface of
-most UI components is hard to separate from the implementation,
-however. In the example above we want to ensure ``emphasis'', which as
-an abstract concept is hard to formalize. User's habits and expectations
-change. A graphical representation that is perfectly
-emphatic today might have been overlooked ten years ago. Additionally,
+test checks whether an implementation satisfies a given specification.
+The specification of a
+UI components is hard to separate from its implementation,
+however. In this case, we want to ensure ``emphasis'', which 
+is hard to formalize. Moreover, users' habits and expectations
+change: An emphasis today might have been overlooked ten years ago. Additionally,
 context plays an important role. A graphical representation that is
-perfectly emphatic when surrounded by white space appears too timid
+emphatic when surrounded by white space may appears too timid
 surrounded by loud advertisements.
 
 Lehman's SPE classification~\cite{SPE} distinguishes programs
@@ -1168,12 +1162,12 @@ verify their correctness.
 While most UI software falls into the \textit{A} class \textit{in its
   entirety}, large software is made from smaller parts, which in turn
 can be classified as either \textit{S} or \textit{A}. In the
-temperature display example above, we already identified
-\textit{emphasis} as the problematic aspect in terms of precise formal
-semantics---an \textit{A} aspect. In contrast, the function
+temperature display example above, we
+emphasis is the problematic aspect in terms of precise formal
+specification---an \textit{A} aspect. In contrast, the function
 \texttt{tooHot} solely operates in terms of the core domain
-logic. This function is independent of its context or any human habits
-or practices, and thus belongs to class \textit{S}.
+logic, and is independent of its context or any human habits
+or practices---it belongs to class \textit{S}.
 
 This S/A separation also applies to Reacl's separation between a UI
 widget's event handler, the representation of the user's intention,
@@ -1181,9 +1175,9 @@ and its dispatch in the \texttt{handle-message} function.  All fall
 squarely within class A, which makes the separation less valuable than
 it might seem from a purely architectural perspective.
 
-In order to bring down overall costs for tests, we have to strive for
+In order to bring down the costs of tests, we have to strive for
 a separation of \textit{S} software parts from
-\textit{A} software parts. In other words: We want to write as little
+\textit{A} software parts, and thus we want to write as little
 UI code as possible. In the remainder of this work we propose a
 discipline that supports this goal: we introduce reacl-c, a UI
 combinator library that is optimized for reusability and we make an
@@ -1237,9 +1231,8 @@ The unit of
 composition in reacl-c is called \textit{item}. All reacl-c items have
 a notion of state, items may have a visual appearance, items may issue
 actions and messages, and items may perform controlled effects.  For
-this overview it suffices to focus on visuals and state. As of now
-reacl-c is tailored to web GUIs, so visuals are always of the DOM
-type. An item can therefore be described by the (imaginary) type \texttt{Item
+this overview it suffices to focus on (DOM) visuals and state.
+An item has the (imaginary) type \texttt{Item
   state}, where \texttt{state} is the type of the item's state.
 
 Strings are primitive, state-agnostic items that simply display as
@@ -1249,7 +1242,6 @@ themselves:
 "Hello" : forall s. Item s
 \end{verbatim}
 %
-
 The \texttt{div} DOM combinator combines multiple items into
 one and allow adding additional styling. Given two items \texttt{i}
 and \texttt{j} of type \texttt{Item s}, the new item
@@ -1261,7 +1253,7 @@ and \texttt{j} of type \texttt{Item s}, the new item
 %
 displays \texttt{i} and \texttt{j}
 side-by-side (or on top of each other, depending on circumstances
-outside of the scope of this discussion) and draws a single blue
+outside of the scope of this discussion) and draws a blue
 border around them. Optionally, these DOM combinators take special
 arguments that allow users to update state. The item
 %
@@ -1319,7 +1311,6 @@ type \texttt{Item t} and ``runs'' the item with the given initial
 state value. The resulting item can be used in any state context. This
 detaches an item's state from its surrounding
 state.
-
 A less drastic combinator is
 %
 \begin{verbatim}
@@ -1338,12 +1329,11 @@ These combinators (along with a handful of others) enable programming
 techniques from pure functional programming to be carried over to GUI
 construction.
 
-\subsection{Phonebooks redux}
+\subsection{Phonebooks Redux}
 
-To further illustrate reacl-c we build on the same domain model for
-phonebooks as described in section~\ref{sec:reacl-c}.  We first import
-the three relevant namespaces from reacl-c along with
-\texttt{active.data} and \texttt{active.clojure} namespaces.
+To further illustrate reacl-c, we re-use the phonebook domain model 
+from section~\ref{sec:reacl-c}.  We the reacl-c namespaces along with
+\texttt{active.data} and \texttt{active.clojure}.
 %
 \begin{verbatim}
 (ns phonebook
@@ -1356,9 +1346,8 @@ the three relevant namespaces from reacl-c along with
     [active.data.realm :as realm]))
 \end{verbatim}
 %
-For our phonebook GUI we need a simple text-field, which we can build
-with a combination of \texttt{c/dynamic}, \texttt{dom/input}, and some
-JavaScript interop.
+For our phonebook GUI we need a text-field, which we can build
+with a combination of \texttt{c/dynamic} and \texttt{dom/input}.
 %
 \begin{verbatim}
 (def text-field
@@ -1456,9 +1445,9 @@ application.
 \end{tikzpicture}
 \end{center}
 %
-We can evolve this small
-item that manages a single phonebook entry to an item that manages an
-entire phonebook (a sequence of entries) just by using \texttt{focus}
+We can evolve this
+single phonebook entry to an item that manages an
+entire phonebook (a sequence of entries) by using \texttt{focus}
 with a lens:
 %
 \begin{verbatim}
@@ -1498,10 +1487,9 @@ In contrast to Reacl components, items such as \texttt{child-item} are
 not wired to any other UI widgets, so the \texttt{map-item} combinator
 can use \texttt{focus} to establish a connection between its state and
 \texttt{child-item}'s state.
-%
-For our rudimentary phonebook application we also want to show a 
-button that inserts a new entry into the
-phonebook.
+Here, we add
+a button that inserts a new entry into the
+phonebook, which works with the entire phonebook state.
 %
 \begin{verbatim}
 (def empty-entry
@@ -1514,8 +1502,6 @@ phonebook.
      (fn [phonebook _] (conj phonebook empty-entry))}
     "Add new")))
 \end{verbatim}
-%
-This button works with the entire phonebook state.
 %
 \begin{center}
 \begin{tikzpicture}
