@@ -58,6 +58,7 @@ Elements of Reusable Object-Oriented Software},
   MONTH = {June} ,
   YEAR = "1993" ,
   ISBN = {0-89791-595-X} ,
+  doi = {10.1145/165180.165228}
 }
 
 @inproceedings{10.1145/1596550.1596561,
@@ -107,7 +108,8 @@ booktitle = {Proceedings of the 1982 ACM Symposium on LISP and Functional Progra
 pages = {179-–187},
 numpages = {9},
 location = {Pittsburgh, Pennsylvania, USA},
-series = {LFP '82}
+series = {LFP '82},
+doi = {10.1145/800068.802148}
 }
 
 @inproceedings{Fruit,
@@ -274,15 +276,25 @@ keywords = {Bidirectional programming, Harmony, XML, lenses, view update problem
   howpublished = {\url{https://purescript-halogen.github.io/purescript-halogen/}}
 }
 
-@InProceedings{Eros,
-  author       = {Conal Elliott},
-  title        = {Tangible Functional Programming},
-  url          = {http://conal.net/papers/Eros/},
-  booktitle    = "International Conference on Functional Programming",
-  year         = 2007
+@inproceedings{Eros,
+author = {Elliott, Conal M.},
+title = {Tangible functional programming},
+year = {2007},
+isbn = {9781595938152},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1291151.1291163},
+doi = {10.1145/1291151.1291163},
+abstract = {We present a user-friendly approach to unifying program creation and execution, based on a notion of "tangible values" (TVs), which are visual and interactive manifestations of pure values, including functions. Programming happens by gestural composition of TVs. Our goal is to give end-users the ability to create parameterized, composable content without imposing the usual abstract and linguistic working style of programmers. We hope that such a system will put the essence of programming into the hands of many more people, and in particular people with artistic/visual creative style.In realizing this vision, we develop algebras for visual presentation and for "deep" function application, where function and argument may both be nested within a structure of tuples, functions, etc. Composition gestures are translated into chains of combinators that act simultaneously on statically typed values and their visualizations.},
+booktitle = {Proceedings of the 12th ACM SIGPLAN International Conference on Functional Programming},
+pages = {59–70},
+numpages = {12},
+keywords = {arrows, combinator libraries, end-user programming, gestural composition, interactive programming, interactive visualization},
+location = {Freiburg, Germany},
+series = {ICFP '07}
 }
 
-@inproceedings{10.1145/2976002.2976010,
+@inproceedings{Yampa,
 author = {Perez, Ivan and B\"{a}renz, Manuel and Nilsson, Henrik},
 title = {Functional reactive programming, refactored},
 year = {2016},
@@ -299,24 +311,3 @@ keywords = {Haskell, functional reactive programming, monadic streams, reactive 
 location = {Nara, Japan},
 series = {Haskell 2016}
 }
-
-@article{Yampa,
-author = {Perez, Ivan and B\"{a}renz, Manuel and Nilsson, Henrik},
-title = {Functional reactive programming, refactored},
-year = {2016},
-issue_date = {December 2016},
-publisher = {ACM},
-address = {New York},
-volume = {51},
-number = {12},
-issn = {0362-1340},
-url = {https://doi.org/10.1145/3241625.2976010},
-doi = {10.1145/3241625.2976010},
-abstract = {Functional Reactive Programming (FRP) has come to mean many things. Yet, scratch the surface of the multitude of realisations, and there is great commonality between them. This paper investigates this commonality, turning it into a mathematically coherent and practical FRP realisation that allows us to express the functionality of many existing FRP systems and beyond by providing a minimal FRP core parameterised on a monad. We give proofs for our theoretical claims and we have verified the practical side by benchmarking a set of existing, non-trivial Yampa applications running on top of our new system with very good results.},
-journal = {SIGPLAN Not.},
-month = sep,
-pages = {33–44},
-numpages = {12},
-keywords = {Haskell, functional reactive programming, monadic streams, reactive program- ming, stream programming}
-}
-
