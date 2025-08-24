@@ -39,13 +39,6 @@ Section 11 only reveals the point that the authors want to make in the last para
 
 The argumentation of how these goals are achieved is mixed with many clojure snippets which this reviewer is ill-prepared to understand (the reading becomes harder from section 9). I'm guessing it would be possible to have a more abstract discussion about how the application is split in a domain model, a view model, and GUI, and how these together with lens neatly address the problems. The clojure snippets can be retained for illustration, without being used as the main device to drive the discussion.
 
-------
-
-There are a few frameworks to do functional reactive programming. They may not deserve being discussed, but references would still allow to discern whether the authors group them all in the same bag when discussing FRP. This reviewer has in mind "Bridging the GUI gap with reactive values and relations" from Perez and Nilsson, and Yampa to mention some examples not in the bibliography.
-
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-
 Review #3B
 ===========================================================================
 

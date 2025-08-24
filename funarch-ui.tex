@@ -524,9 +524,9 @@ creating a style of programming colloquially known as \textit{callback
 
 This section briefly describes some early UI tookits for functional
 languages.  We focus on toolkits that rely on pure functions to implement
-the UI, and omit those that basically provided bindings for
+the UI, and omit those that basically provide bindings for
 underlying C/C++ libraries and thus
-inherited its imperative MVC pattern.  We also omit UI toolkits that
+inherit its imperative MVC pattern.  We also omit UI toolkits that
 only cover certain kinds of applications, like Eros~\cite{Eros} which is
 for UIs that construct values.
 
@@ -599,7 +599,10 @@ differences between Fudget and Fruit, however:
 \end{itemize}
 %
 Thus, Fruit avoids the \hyperlink{challenge:update}{\textit{Update}} challenge from Section~\ref{sec:challenges},
-but comes with its own modularity problem.
+but comes with its own modularity problem.  The Yampa framework~\cite{Yampa} builds
+on similar ideas, but represents reactivity on \textit{monadic stream
+  functions} that are parameterized over a monad, effectively re-introducing
+imperative programming to the paradigm.
 
 \subsection{Haggis}
 
