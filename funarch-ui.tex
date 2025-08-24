@@ -202,7 +202,7 @@ have developed to deal with it.  Section~\ref{sec:conclusion} concludes.
 \section{UI and Software Architecture}
 \label{sec:ui-and-architecture}
 
-Starting with the \textit{Movel-View-Controller} pattern
+Starting with the \textit{Model-View-Controller} pattern
 (MVC)~\cite{MVC} in the 1970s, the software
 industry and research community have produced a plethora of \textit{UI
   toolkits}, libraries that provide the conceptual elements of a
@@ -212,7 +212,7 @@ called \textit{widgets}.  Each toolkit dictates or at least
 constrains the organization of the applications that use them.
 
 The job of a UI toolkit is to enable developers to create and maintain
-UI applications.  These dual requirements---fast creation and
+UI applications, but these dual requirements---fast creation and
 effective long-term maintenance---tend to be in conflict.  This is especially pernicious in
 practice, as most of the cost produced by a software system is in
 maintenance, not initial creation~\cite{GreenBook}.
@@ -220,7 +220,7 @@ maintenance, not initial creation~\cite{GreenBook}.
 This phenomenon seems to be especially pronounced in GUI applications:
 The Visual Basic 6 (VB6) environment for building GUI
 applications~\cite{VB6} was optimized for fast initial creation, and
-as such one of the most successful such environments of all time.
+as such, it was one of the most successful such environments of all time.
 Microsoft relegated VB6 to ``legacy'' status in 2008. Despite this,
 many VB6 applications are still around at the time of writing, even
 though their further development is painful and costly, and their
@@ -667,7 +667,7 @@ key presses, and \texttt{on-mouse} on mouse events.  Writing these
 functions is well within the purview of introductory-course students.
 
 Consequently, the Universe teachpack uses a ``brute-force'' approach
-to the view-update poblem: Use a single monolithic value for the model
+to the view-update problem: Use a single monolithic value for the model
 state, and redraw everything every time the model moves to a new
 state.  This means no separate view-update code---\hyperlink{challenge:update}{\textit{Update}} challenge
 solved.
@@ -728,7 +728,7 @@ model, which again gets fed into \texttt{view} and so on.
 The \texttt{Cmd} type allows triggering impure actions outside of user
 interactions.  In particular, a program performs network requests by
 issuing commands, which get executed asynchronously and result in
-incoming messages, thus ameliorating isssues with JavaScript's
+incoming messages, thus ameliorating issues with JavaScript's
 inherent event loop.
 
 View-Model-Update is simple and easy to
