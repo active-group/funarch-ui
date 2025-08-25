@@ -364,7 +364,8 @@ class TemperatureView
 class PressureView
   (field pressureModel: Pressure) {
   var textField =
-    new TextField(toText(pressureModel.hPa) + "hPa")
+    new TextField(toText(pressureModel.hPa)
+        + "hPa")
 
   pressureModel.subscribe(self)
 
@@ -914,7 +915,8 @@ explicit:
     [reacl2.core :as reacl :include-macros true]
     [reacl2.dom :as dom :include-macros true]
     [active.data.record :as record
-      :include-macros true :refer-macros (def-record)]
+      :include-macros true
+      :refer-macros (def-record)]
     [active.data.realm :as realm]))
 \end{verbatim}
 %
