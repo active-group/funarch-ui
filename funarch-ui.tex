@@ -196,7 +196,7 @@ Starting with the \textit{Model-View-Controller} pattern
 industry and research community have produced a plethora of \textit{UI
   toolkits}, libraries that provide the conceptual elements of a
 UI---text, input fields, buttons, lists, menus, grids and more---as
-objects to be created and manipulated by the program, and henceforth
+objects to be created and manipulated by the program, and, henceforth
 called \textit{widgets}.  Each toolkit dictates or at least
 constrains the organization of the applications that use them.
 
@@ -335,8 +335,8 @@ class Model {
 class Pressure extends Model {
   var hPa: double
   method setHPa(newHPa: double) {
-    self.hPA = newHPa
-    self.changed(newHPA)
+    self.hPa = newHPa
+    self.changed(newHPa)
   }
 }
 class Temperature extends Model {
@@ -375,7 +375,7 @@ class PressureView
   pressureModel.subscribe(self)
 
   method update(newHPa) {
-    textField.setText(toText(newKelvin) + "hPa")
+    textField.setText(toText(newHPa) + "hPa")
   }
 }
 class WeatherView(field weatherModel: Weather) {
@@ -426,7 +426,7 @@ class TemperatureView2
   })
   temperatureModel.subscribe(new Observer {
       method update(newKelvin) {
-        textField.setText(toText(kToC(newKelvin)))
+        fahrenheitView.setText(toText(kToC(newKelvin)))
     }
   })
   celsiusView.subscribe(new Observer {
@@ -513,7 +513,7 @@ creating a style of programming colloquially known as \textit{callback
 \section{Functional UI Toolkits: The Early Days}
 \label{sec:functional-ui}
 
-This section briefly describes some early UI tookits for functional
+This section briefly describes some early UI toolkits for functional
 languages.  We focus on toolkits that rely on pure functions to implement
 the UI, and omit those that basically provide bindings for
 underlying C/C++ libraries and thus
@@ -524,7 +524,7 @@ for UIs that construct values.
 \subsection{eXene}
 
 The eXene~\cite{eXene} toolkit was developed as part of the Concurrent
-ML project~\cite{ConcurrentML} (CML).  EXene
+ML project~\cite{ConcurrentML} (CML).  eXene
 uses Concurrent ML to solve the event-loop problem described in
 Section~\ref{sec:event-loop}.  In eXene, the global event loop is
 relegated to the background in favor of individual event loops running
@@ -581,7 +581,7 @@ differences between Fudget and Fruit, however:
   add interactions (such as file or network I/O) after
   the fact.
 \item Another difference concerns dynamic UI components:
-  Whereas Fudget views display the values coming from a
+  Whereas Fudgets views display the values coming from a
   stream (and are thus ``outside'' those streams), Fruit has the views
   themselves be the values of the FRP signals, and dynamic structure
   can be expressed by just having new values return a different view.
@@ -774,13 +774,10 @@ alleviate the problem.
 
 % FIXME: maybe notes on the implementation
 
-Elm and React represented an erstwhile peak in the evolution of
-functional APIs, intellectually hailing from Fudgets and Fruit, and
-effectively rendering obsolete the functional toolkits that came
-before them.
-Consequently, we
-take Model-View-Update as the starting point for the further
-discussion.
+Elm and React and the Model-View-Update pattern represented an
+erstwhile peak in the evolution of functional APIs, intellectually
+hailing from Fudgets and Fruit.  Consequently, we take
+Model-View-Update as the starting point for the further discussion.
 
 \section{UI Toolkits Elsewhere}
 \label{sec:ui-toolkits-elsewhere}
@@ -802,7 +799,7 @@ change.
 However, instead of requiring the programmer to implement the update
 logic manually, these toolkits feature a pre-processor 
 that generates the update code automatically from the construction code.
-This convenience comes at a price, however, as these tookits require
+This convenience comes at a price, however, as these toolkits require
 the code changing the state to be exposed to the UI toolkit, and for
 that code to use conventions recognizable to the pre-processor.  This
 means that the model cannot be implemented independently of the UI
@@ -866,7 +863,7 @@ intermediate state is of no interest to the model, hence it is
 of the model.  Thus, the UI toolkit should enable separating the model state
 from the UI-local state.
 
-Note that the classification between model state and UI-local state
+Note that the distinction between model state and UI-local state
 depends on context and judgement: The name UI component itself has two
 sub-components, a text field and the submit button.  The text field's
 model will usually be the visible text.  However, embedded within the
@@ -926,7 +923,7 @@ explicit:
     [active.data.realm :as realm]))
 \end{verbatim}
 %
-We use Active Data to declare a record type for an entry in the
+We use Active Data to define a record type for an entry in the
 phonebook, the central aspect of the model:
 %
 \begin{verbatim}
@@ -1059,7 +1056,7 @@ record declaration:
 (def-record submit [])
 \end{verbatim}
 %
-(The Web DOM \texttt{.preventDefault} call is just a technical necessity.)
+(The DOM \texttt{.preventDefault} call is just a technical necessity.)
 
 Finally, the \texttt{handle-message} function dispatches on the two
 messages, updating the local state for \texttt{change-name} and the
@@ -1113,7 +1110,7 @@ Model-View-Update should make UI tests easy: Run the
 your domain logic and compare the resulting graphical display
 \texttt{(view state)} to your desired version. Even forgetting about
 the dynamic nature of UIs for a moment, this approach rarely results
-in good tests. Take this temperature display in pseudo-code:
+in good tests. Take this temperature display in pseudocode:
 %
 \begin{verbatim}
 (defn view [temp]
@@ -1179,8 +1176,8 @@ a separation of \textit{S} software parts from
 \textit{A} software parts, and thus we want to write as little
 UI code as possible. In the remainder of this work we propose a
 discipline that supports this goal: we introduce reacl-c, a UI
-combinator library that is optimized for reusability and we make an
-argument for the \textit{functional view model}, a UI programming
+combinator library that is optimized for reusability and we make a
+case for the \textit{functional view model}, a UI programming
 pattern.
 
 \section{From Reacl to reacl-c}
@@ -1331,7 +1328,7 @@ construction.
 \subsection{Phonebooks Redux}
 
 To further illustrate reacl-c, we re-use the phonebook domain model 
-from section~\ref{sec:reacl-c}.  We the reacl-c namespaces along with
+from section~\ref{sec:reacl-c}.  We import the reacl-c namespaces along with
 \texttt{active.data} and \texttt{active.clojure}.
 %
 \begin{verbatim}
@@ -1574,7 +1571,7 @@ emphasis into an isolated item combinator:
            item))
 \end{verbatim}
 %
-So far the domain model and the state of our items has been the same. Now
+So far the domain model and the state of our items have been the same. Now
 we also have to keep track of which entry to \texttt{emphasize}. We
 therefore separate our domain model from the model of our UI state. This
 is a pattern well-known in the OO community
