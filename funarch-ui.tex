@@ -167,7 +167,7 @@ application architecture since their inception from a functional
 perspective.
 
 \paragraph{Overview} Section~\ref{sec:ui-and-architecture} summarizes
-the software-architectural concepts relevant for the discussion in
+the software architecture concepts relevant for the discussion in
 this paper.  Section~\ref{sec:mvc} reviews the Model-View-Controller
 pattern, the starting point for all modern UI toolkits.
 Section~\ref{sec:event-loop} discusses the event loop, an
@@ -196,7 +196,7 @@ Starting with the \textit{Model-View-Controller} pattern
 industry and research community have produced a plethora of \textit{UI
   toolkits}, libraries that provide the conceptual elements of a
 UI---text, input fields, buttons, lists, menus, grids and more---as
-objects to be created and manipulated by the program, and, henceforth
+objects to be created and manipulated by the program, henceforth
 called \textit{widgets}.  Each toolkit dictates or at least
 constrains the organization of the applications that use them.
 
@@ -220,9 +220,8 @@ Moving away from VB6 is so difficult because a VB6 application
 typically combines UI-related code, domain logic, and possible
 interactions with a database in the same function, making it
 all but impossible to replace any of these parts of the system
-independently.  These dependencies prevent piecewise migration to a
-supported environment, making a ``big-bang migration'' the only
-path away from VB6, which is usually economically
+independently.  This effectively makes a ``big-bang migration'' the only
+path away from VB6, but this is often economically
 infeasible.
 
 The problem of VB6 projects and many other projects with
@@ -233,8 +232,8 @@ elsewhere.  Consequently, the central concern of software
 architecture is to enable effective long-term maintenance by minimizing
 coupling.  A software project can control coupling through 
 {modularization}~\cite{Modularity}---splitting the
-project into building blocks and maintaining strong boundaries between
-them by establishing explicit interfaces.
+project into building blocks and maintaining strong boundaries---''modularity''---between
+them.
 
 The shared concern of UI applications is to establish modularity
 between the UI code and the domain logic.  For the rest of this paper, we will examine UI toolkits and paradigms
@@ -259,14 +258,14 @@ implications, such as for automatic tests.  Environments that
 strongly couple view and model, such as VB6, make applications
 difficult to test, as the only way of invoking domain
 functionality is via the UI.
-Often, the only resort in these cases is to simulate an operator
+Often, the only resort in these cases is to simulate a user
 programmatically, which is expensive and brittle.
 
 MVC programs need to keep the view current when the state of the model
 changes.  To that end, models typically implement a variation of the
 \textit{observer pattern}~\cite{GoF}: The model maintains a list of
 ``dependents'', objects that it notifies on changes by calling
-an \texttt{update} method.  (The controller is tightly coupled to the
+an \texttt{update} method on them.  (The controller is tightly coupled to the
 view, and its role is unimportant for this discussion.)
 As the \texttt{update} method informs the view of state changes, this
 approach is inherently imperative.  MVC has nice modularity
@@ -308,7 +307,7 @@ Figure~\ref{fig:weather-model} shows object-oriented pseudocode for a
 weather model that contains air pressure and temperature, each with
 its own encapsulated state.  Figure~\ref{fig:weather-view} shows
 skeleton code for a view that displays both in text fields.  The code
-demonstrates nicely the modularity of the approach, as
+demonstrates the modularity of the approach, as
 \texttt{PressureView} and \texttt{TemperatureView} each subscribe to
 their respective models, with no coordination required from
 \texttt{WeatherView}.
@@ -405,7 +404,7 @@ Alternatively, the subscription and update could happen between
 somewhat but also reducing the amount of code required.
 
 The views are missing code to unsubscribe them from their
-respective models---this further complicates the interaction between
+respective models---this would further complicate the interaction between
 model and view.
 
 \begin{figure}[tb]
@@ -560,7 +559,7 @@ Most UIs
 need to have dynamic structure---for example, when
 displaying a list of UI items that supports adding and removing
 elements.  Fudgets addresses this by combinators that accept special
-command values that describe mutations of the UI structure,
+command values describing mutations of the UI structure,
 effectively sneaking in imperative elements in its otherwise pure
 model.  Thus, Fudgets also partially inherits the \hyperlink{challenge:update}{\textit{Update}} challenge from
 Section~\ref{sec:challenges}.
@@ -618,12 +617,13 @@ era of toolkits described in the previous section.  Since 2003, the Racket syste
  has come with a library called the \textit{Universe teachpack} for an
 introductory course~\cite{UniverseTeachpack} that allows writing
 distributed, interactive video games in a purely functional manner.
+We focus
+here on the ``world'' part of the Universe teachpack, i.e.\ video
+games without distribution.
 
 The Universe teachpack is basically ``half'' a UI toolkit.  It is an
 interesting subject for study, as it does address the pernicious \hyperlink{challenge:update}{\textit{Update}}
-challenge of the UI toolkits described above.  We focus
-here on the ``world'' part of the Universe teachpack, i.e.\ video
-games without distribution.  To implement such a video game, the
+challenge of the UI toolkits described above.  To implement such a video game, the
 developer only has to implement a small number of pure functions, all
 of which operate on a model represented by
 a single value of type \texttt{WorldSt}, which is entirely under the
@@ -636,7 +636,7 @@ on-key :  WorldSt KeyEvt → WorldSt
 on-mouse : WorldSt Nat Nat MouseEvt → WorldSt
 \end{verbatim}
 %
-These functions are all callbacks for the Universe teachpack, the
+These functions are all callbacks for the Universe teachpack, 
 programs contains no explicit calls to them.
 The \texttt{on-draw} function handles view construction and uses Racket's
 \texttt{image} teachpack to build a single frame of the video game.
@@ -664,7 +664,7 @@ solved.
 Unfortunately, this approach also abandons the good modularity
 properties of object-oriented MVC toolkits: From the point of view of
 the UI toolkit, the model state is a single value, and there is no
-simple way to split it---and the corresponding view elements---into
+simple way to split it---and to split the corresponding view elements into
 sub-views.  Thus, the Universe
 teachpack does not address the \hyperlink{challenge:modularity}{\textit{Modularity}} challenge from
 Section~\ref{sec:challenges}.  This is not a
@@ -799,7 +799,7 @@ change.
 However, instead of requiring the programmer to implement the update
 logic manually, these toolkits feature a pre-processor 
 that generates the update code automatically from the construction code.
-This convenience comes at a price, however, as these toolkits require
+This convenience comes at a price, as these toolkits require
 the code changing the state to be exposed to the UI toolkit, and for
 that code to use conventions recognizable to the pre-processor.  This
 means that the model cannot be implemented independently of the UI
@@ -817,7 +817,7 @@ Section~\ref{sec:challenges}:
 \item Model-View-Update solves the \hyperlink{challenge:update}{\textit{Update}} challenge: A single function
   describes view construction, no separate logic for view update is
   needed.
-\item Implementing modular sub-views to solve the \hyperlink{challenge:modularity}{\textit{Modularity}} challenge remains a challenge:
+\item The \hyperlink{challenge:modularity}{\textit{Modularity}} challenge---implementing modular sub-views---remains:
   A functional Elm/React application manages its model
   state as a single mutable reference at the top level, with
   everything below managed functionally.
@@ -829,7 +829,7 @@ Section~\ref{sec:challenges}:
 Solving the \hyperlink{challenge:modularity}{\textit{Modularity}} challenge in the context of functional programming
 means establishing a notion of ``UI
 component'' without resorting to imperative state updates.  A solution
-approach needs to address facets described in this section: Updating
+approach needs to address the facets described in this section: Updating
 the model state in a modular fashion, dealing with UI-local state, and
 breaking up global dispatch.
 
@@ -1056,7 +1056,7 @@ record declaration:
 (def-record submit [])
 \end{verbatim}
 %
-(The DOM \texttt{.preventDefault} call is just a technical necessity.)
+(The \texttt{.preventDefault} DOM call is just a technical necessity.)
 
 Finally, the \texttt{handle-message} function dispatches on the two
 messages, updating the local state for \texttt{change-name} and the
@@ -1128,14 +1128,15 @@ not with a red background but a border.  Our test
 demands that the background be red. To make the change,
 we have to adapt both our implementation \textit{and} our
 test.
+
 A good
 test checks whether an implementation satisfies a given specification.
-The specification of a
-UI components is hard to separate from its implementation,
-however. In this case, we want to ensure ``emphasis'', which 
+Howeber, the specification of a
+UI components is hard to separate from its implementation.
+In this case, we want to ensure ``emphasis'', which 
 is hard to formalize. Moreover, users' habits and expectations
 change: An emphasis today might have been overlooked ten years ago. Additionally,
-context plays an important role. A graphical representation that is
+context is important. A graphical representation that is
 emphatic when surrounded by white space may appears too timid
 surrounded by loud advertisements.
 
@@ -1158,7 +1159,7 @@ verify their correctness.
 While most UI software falls into the \textit{A} class \textit{in its
   entirety}, large software is made from smaller parts, which in turn
 can be classified as either \textit{S} or \textit{A}. In the
-temperature display example above, we
+temperature display example above, 
 emphasis is the problematic aspect in terms of precise formal
 specification---an \textit{A} aspect. In contrast, the function
 \texttt{tooHot} solely operates in terms of the core domain
@@ -1359,7 +1360,7 @@ As shown above the \texttt{:onChange} handler describes how to update
 the current state.  Here we see how reacl-c integrates with the native
 DOM bedrock of the browser: The \texttt{:onChange} handler takes a
 native DOM event object as an optional second
-parameter which contains the desired result text.
+parameter that contains the desired result text.
 
 We can build a text editor with a Submit button, similar to the Reacl
 version above with the help of \texttt{local-state}. Here we can reuse
@@ -1588,8 +1589,7 @@ entries.
 \end{verbatim}
 %
 It probably doesn't make sense to have more than one \texttt{entry} with
-\texttt{entry-vm-emphasized?} set to \texttt{true}. There are many ways to
-ensure this constraint. Here we decide to provide a set of smart
+\texttt{entry-vm-emphasized?} set to \texttt{true}. We provide a set of smart
 constructors and accessors that keep the constraint satisfied. First,
 we need an empty phonebook:
 %
